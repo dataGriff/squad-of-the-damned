@@ -317,7 +317,8 @@ export function levelToTiled(src: LevelSource): TiledMap {
       id: nextId++,
       name: '',
       type: o.type,
-      x: o.tx * TILE + (TILE - w) / 2,
+      // explicit objects anchor their left edge to the tile (arenas, seals); wide ones must not shift
+      x: w > TILE ? o.tx * TILE : o.tx * TILE + (TILE - w) / 2,
       y: (o.ty + 1) * TILE - h,
       width: w,
       height: h,

@@ -175,7 +175,7 @@ export class Exit extends Static {
 /** Mummy arena valve (#26): shoot the valve or its pipe; water sprays down for a few seconds. */
 export class Valve extends Static {
   kind = 'valve';
-  hostile = false;
+  hostile = true; // targetable by shots
   spray = 0;
   anim = new Animator({ s: A.SPRAY }, 's');
   private valveY: number;
@@ -221,7 +221,7 @@ export class Valve extends Static {
 /** Giant arena lantern (#24): shoot the chain to drop it; it burns where it lands. */
 export class Lantern extends Static {
   kind = 'lantern';
-  hostile = false;
+  hostile = true; // targetable by shots
   falling = false;
   burning = 0;
   vy = 0;
@@ -230,7 +230,8 @@ export class Lantern extends Static {
   /** y of the lantern itself; the entity rect spans the chain too. */
   lanternY: number;
   constructor(x: number, y: number) {
-    super(x + 4, 0, 8, y + 12);
+    // hit zone: the chain above plus a forgiving 40px below the lantern itself
+    super(x + 4, 0, 8, y + 12 + 40);
     this.lanternY = y + 4;
     this.restY = this.lanternY;
   }
@@ -263,7 +264,7 @@ export class Lantern extends Static {
     }
   }
   get fireRect(): { x: number; y: number; w: number; h: number } | null {
-    return this.burning > 0 ? { x: this.x - 8, y: this.lanternY - 8, w: 24, h: 16 } : null;
+    return this.burning > 0 ? { x: this.x - 12, y: this.lanternY - 8, w: 32, h: 16 } : null;
   }
   draw(r: Renderer, cx: number, cy: number): void {
     if (this.burning > 0) r.sprite(this.anim.sprite, A.FIRE_PAL, this.x - cx, this.lanternY - cy);

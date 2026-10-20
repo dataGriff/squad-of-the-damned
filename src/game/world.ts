@@ -26,9 +26,10 @@ export interface Entity {
 }
 
 export interface Damageable extends Entity {
-  /** Returns true if the hit landed. */
+  /** Returns true if the hit landed (did damage or triggered the object). */
   hit(world: World, kind: Weakness | 'melee' | 'pebble', damage: number, fromX: number): boolean;
   stun?(seconds: number): void;
+  /** Targetable right now (hidden hands and spent props set this false). */
   hostile: boolean;
 }
 

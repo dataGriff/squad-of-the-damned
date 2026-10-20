@@ -351,11 +351,7 @@ export class NightScene implements Scene {
     const cam = this.camera.offset(alpha);
     // backdrop bands with light parallax
     for (const [frac, col] of th.bands) r.rect(0, Math.round(frac * SCREEN_H - cam.y * 0.2), SCREEN_W, SCREEN_H, col);
-    if (this.theme === 'suburb' || this.theme === 'graveyard') {
-      const mx = 200 - Math.round(cam.x * 0.05);
-      r.rect(mx, 30, 20, 20, '#f8f8b8');
-      r.rect(mx - 2, 34, 24, 12, '#f8f8b8');
-    }
+    this.drawBackdrop(r, cam.x);
     // tiles
     const frame = Math.floor(this.world.time * 2);
     const tx0 = Math.max(0, Math.floor(cam.x / TILE));
@@ -401,6 +397,60 @@ export class NightScene implements Scene {
         break;
       case 'dying':
         if (this.stateT > 0.8) r.textCentered(this.lives > 0 ? 'OUCH.' : 'THE SQUAD IS DOWN', 108, '#e40058');
+        break;
+    }
+  }
+
+  /** Dressing pass (#31, #40): a parallax backdrop per theme behind the tiles. */
+  private drawBackdrop(r: Renderer, camX: number): void {
+    const px = Math.round(camX * 0.3);
+    switch (this.theme) {
+      case 'suburb': {
+        const mx = 200 - Math.round(camX * 0.05);
+        r.rect(mx, 30, 20, 20, '#f8f8b8');
+        r.rect(mx - 2, 34, 24, 12, '#f8f8b8');
+        // houses
+        for (let i = -1; i < 6; i++) {
+          const x = ((i * 96 - px) % 576 + 576) % 576 - 96;
+          r.rect(x, 140, 64, 68, '#3c3c3c');
+          r.rect(x - 4, 128, 72, 14, '#2c1600');
+          r.rect(x + 12, 156, 12, 12, '#f8d878');
+          r.rect(x + 40, 156, 12, 12, '#f8d878');
+        }
+        break;
+      }
+      case 'graveyard': {
+        const mx = 200 - Math.round(camX * 0.05);
+        r.rect(mx, 30, 20, 20, '#f8f8b8');
+        r.rect(mx - 2, 34, 24, 12, '#f8f8b8');
+        for (let i = -1; i < 8; i++) {
+          const x = ((i * 72 - px) % 576 + 576) % 576 - 72;
+          r.rect(x + 10, 120, 6, 90, '#000000');
+          r.rect(x, 100, 26, 28, '#000000');
+          r.rect(x + 14, 112, 20, 16, '#000000');
+        }
+        break;
+      }
+      case 'mansion': {
+        // wallpaper stripes and picture rail
+        for (let x = -(px % 16); x < SCREEN_W; x += 16) r.rect(x, 16, 8, 160, '#3c1a00');
+        r.rect(0, 60, SCREEN_W, 2, '#503000');
+        r.rect(0, 176, SCREEN_W, 4, '#503000');
+        break;
+      }
+      case 'sewer': {
+        for (let x = -(px % 48); x < SCREEN_W; x += 48) {
+          r.rect(x, 16, 4, 192, '#004058');
+          r.rect(x + 20, 40, 24, 6, '#004058');
+        }
+        break;
+      }
+      case 'drain': {
+        for (let y = 24; y < 200; y += 32) r.rect(0, y, SCREEN_W, 2, '#002830');
+        for (let x = -(px % 64); x < SCREEN_W; x += 64) r.rect(x, 16, 2, 192, '#002830');
+        break;
+      }
+      default:
         break;
     }
   }
