@@ -70,3 +70,19 @@ describe('tile physics (#8, #11, #12, #18)', () => {
     expect(crouched.hitWall).toBe(0);
   });
 });
+
+describe('ladder tops (#11)', () => {
+  it('the top tile of a ladder supports a body like a one-way platform', () => {
+    const m = map(['....', '.H..', '.H..', '####']);
+    const b = makeBody(18, 5, 8, 10);
+    b.vy = 100;
+    stepBody(b, m, DT);
+    expect(b.onGround).toBe(true);
+    expect(b.y + b.h).toBe(16);
+    // but the middle of the ladder is not a floor
+    const c = makeBody(18, 20, 8, 10);
+    c.vy = 100;
+    stepBody(c, m, DT);
+    expect(c.onGround).toBe(false);
+  });
+});

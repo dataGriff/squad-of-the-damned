@@ -38,7 +38,7 @@ export const GAP_SPIKES = seg([E, E, E, E, E, E, E, E, E, E, E, E, E, '######^^^
 /** Wider pit over water (slow) with a frog. */
 export const GAP_WATER = seg([E, E, E, E, E, E, E, E, E, E, E, '......---.......', '.........f......', '####~~~~~~~~####', '################']);
 /** Stepped one-way platforms up and over a tall wall. */
-export const STEPS = seg([E, E, E, E, '............---.', E, '.........---....', E, '......---.......', E, '...---..........', E, E, '############||##', G]);
+export const STEPS = seg([E, E, E, E, E, '............---.', E, '.........---....', E, '......---.......', E, '...---..........', E, '############||##', G]);
 /** A tall wall with a ladder, bats hovering, then down the other side. */
 export const LADDER_WALL = seg([E, E, E, E, '......H.........', '......H###......', '......H###......', '......H###..b...', '......H###......', '......H###......', '......H###......', '......H###......', '......H###......', '################', G]);
 /** Low ceiling crawl (crouch) with a rat inside. */
@@ -56,7 +56,7 @@ export const SECRET_ROOM = seg([E, E, '..############..', '..#..........#..', '.
 export const EXIT = seg([E, E, E, E, E, E, E, E, E, E, E, E, '........E.......', G, G]);
 export const FLAT_DECO_A = seg([E, E, E, E, E, E, E, E, E, E, E, E, '..,....;.....".,', G, G]);
 export const FLAT_DECO_B = seg([E, E, E, E, E, E, E, E, E, E, E, E, '.".,.....;...,..', G, G]);
-export const PILLARS = seg([E, E, E, E, E, E, E, E, E, '....||....||....', '....||....||....', '....||....||....', '....||....||....', G, G]);
+export const PILLARS = seg([E, E, E, E, E, E, E, E, E, E, E, '....||....||....', '....||....||....', G, G]);
 
 /* ---------- boss arenas: 16 wide, floor at row 13, walls at the edges ---------- */
 export const ARENA_VAMPIRE = seg([
