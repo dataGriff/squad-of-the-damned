@@ -54,7 +54,8 @@ export abstract class Boss implements Damageable {
 
   /**
    * Damage rules (#36): the weakness only works once the page is found, and
-   * only during vulnerability windows. Everything else just sparks off.
+   * only during vulnerability windows. Everything else sparks off and returns
+   * false, so shots keep flying (you can shoot a lantern chain past the Giant).
    */
   hit(world: World, kind: Weakness | 'melee' | 'pebble', damage: number, fromX: number): boolean {
     if (this.dead || this.defeatTime >= 0 || this.introTime > 0) return false;
@@ -71,11 +72,11 @@ export abstract class Boss implements Damageable {
       const phaseChanged = this.machine.damage(dmg);
       if (phaseChanged) this.onPhaseChange(world);
       if (this.machine.dead) this.defeat(world);
-    } else {
-      world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, '#bcbcbc', 3, 40);
-      audio.play('tick');
+      return true;
     }
-    return true;
+    world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, '#bcbcbc', 3, 40);
+    audio.play('tick');
+    return false;
   }
   /** Hook for bosses that react to specific hit kinds (stun, wet, etc.). */
   protected onHit(_world: World, _kind: string, _dmg: number, _fromX: number): void {}

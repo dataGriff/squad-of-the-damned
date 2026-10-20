@@ -106,7 +106,8 @@ export class NightScene implements Scene {
     for (const a of this.arenas) this.camera.lockZones.push({ x: a.x, y: a.y, w: a.w, h: a.h });
     // mark already-lit lamps
     for (const l of this.world.all<Lamp>('lamp')) if (l.index <= this.checkpoint) l.lit = true;
-    if (this.map.props.water) this.world.waterLevel = this.map.pixelHeight - 5 * TILE;
+    // the Gill arena's water surface (row 10); only the boss and the drain care
+    if (this.map.props.water) this.world.waterLevel = (this.map.height - 5) * TILE;
     this.camera.snapTo(this.player.centerX, this.player.centerY, 1);
     this.timer = this.map.props.timer ? Number(this.map.props.timer) : null;
     this.state = 'intro';
@@ -373,12 +374,6 @@ export class NightScene implements Scene {
     const ents = [...this.world.entities].sort((a, b) => (a.layer ?? 0) - (b.layer ?? 0));
     for (const e of ents) if (!e.dead || e === (this.player as Entity)) e.draw(r, cam.x, cam.y, alpha);
     this.particles.draw((x, y, w, h, c) => r.rect(x, y, w, h, c), cam.x, cam.y);
-    // water tint
-    if (this.world.waterLevel !== null) {
-      r.ctx.globalAlpha = 0.25;
-      r.rect(0, this.world.waterLevel - cam.y, SCREEN_W, SCREEN_H, '#3cbcfc');
-      r.ctx.globalAlpha = 1;
-    }
     if (this.heatmap) this.drawHeatmap(r, cam.x, cam.y);
     // hit / swap flash
     if (this.world.flash > 0) {

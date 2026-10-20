@@ -44,7 +44,7 @@ export const KIDS: Record<KidId, Kid> = {
     name: 'MO',
     ability: 'garlic',
     blurb: 'LOBS GARLIC BOMBS. STUNS EVERYTHING NEARBY.',
-    palette: pal('darkBrown', 'olive', 'cream'),
+    palette: pal('darkBrown', 'green', 'cream'),
     w: 12,
     h: 22,
     crouchH: 14,

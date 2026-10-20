@@ -172,14 +172,17 @@ export class Exit extends Static {
   }
 }
 
-/** Mummy arena valve (#26): pebble hits spray water for a few seconds. */
+/** Mummy arena valve (#26): shoot the valve or its pipe; water sprays down for a few seconds. */
 export class Valve extends Static {
   kind = 'valve';
   hostile = false;
   spray = 0;
   anim = new Animator({ s: A.SPRAY }, 's');
+  private valveY: number;
+  private floorY = 0;
   constructor(x: number, y: number) {
-    super(x + 2, y + 4, 12, 12);
+    super(x + 4, y + 4, 8, 12);
+    this.valveY = y + 4;
   }
   hit(world: World): boolean {
     if (this.spray > 0) return false;
@@ -189,25 +192,33 @@ export class Valve extends Static {
     return true;
   }
   update(world: World, dt: number): void {
+    if (!this.floorY) {
+      // the pipe runs from the valve to the floor and is the thing you shoot
+      let ty = Math.floor(this.valveY / TILE) + 1;
+      while (ty < world.map.height && !world.map.isSolidKind(world.map.kindAt(Math.floor((this.x + 4) / TILE), ty))) ty++;
+      this.floorY = ty * TILE;
+      this.h = this.floorY - this.y;
+    }
     this.anim.update(dt);
     if (this.spray > 0) {
       this.spray -= dt;
-      if (Math.random() < 0.5) world.particles.emit({ x: this.x + 6, y: this.y + 12, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100 });
+      if (Math.random() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100 });
     }
   }
   /** Rect of the falling water column below the valve. */
   get sprayRect(): { x: number; y: number; w: number; h: number } | null {
-    return this.spray > 0 ? { x: this.x - 2, y: this.y + 12, w: 16, h: 96 } : null;
+    return this.spray > 0 ? { x: this.x - 4, y: this.valveY + 12, w: 16, h: Math.max(16, this.floorY - this.valveY - 12) } : null;
   }
   draw(r: Renderer, cx: number, cy: number): void {
-    r.sprite(A.VALVE, A.VALVE_PAL, this.x - cx, this.y - 4 - cy);
+    for (let y = this.valveY + 12; y < this.floorY; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, '#3c3c3c');
+    r.sprite(A.VALVE, A.VALVE_PAL, this.x - 2 - cx, this.valveY - 4 - cy);
     if (this.spray > 0) {
-      for (let i = 0; i < 12; i++) r.sprite(this.anim.sprite, A.WATER_PAL, this.x + 2 - cx, this.y + 12 + i * 8 - cy);
+      for (let y = this.valveY + 12; y < this.floorY; y += 8) r.sprite(this.anim.sprite, A.WATER_PAL, this.x - cx, y - cy);
     }
   }
 }
 
-/** Giant arena lantern (#24): a shot drops it; it burns where it lands. */
+/** Giant arena lantern (#24): shoot the chain to drop it; it burns where it lands. */
 export class Lantern extends Static {
   kind = 'lantern';
   hostile = false;
@@ -216,48 +227,49 @@ export class Lantern extends Static {
   vy = 0;
   anim = new Animator({ l: A.LANTERN, f: A.FIRE }, 'l');
   private restY: number;
+  /** y of the lantern itself; the entity rect spans the chain too. */
+  lanternY: number;
   constructor(x: number, y: number) {
-    super(x + 4, y + 4, 8, 8);
-    this.restY = this.y;
+    super(x + 4, 0, 8, y + 12);
+    this.lanternY = y + 4;
+    this.restY = this.lanternY;
   }
   hit(world: World): boolean {
     if (this.falling || this.burning > 0) return false;
     this.falling = true;
     audio.play('break');
-    world.particles.burst(this.x + 4, this.y + 4, '#f8d878', 4, 40);
+    world.particles.burst(this.x + 4, this.lanternY + 4, '#f8d878', 4, 40);
     return true;
   }
   update(world: World, dt: number): void {
     this.anim.update(dt);
     if (this.falling) {
       this.vy += 600 * dt;
-      this.y += this.vy * dt;
-      if (world.map.rectSolid(this.x, this.y + this.h, this.w, 1)) {
+      this.lanternY += this.vy * dt;
+      if (world.map.rectSolid(this.x, this.lanternY + 8, this.w, 1)) {
         this.falling = false;
         this.burning = 4;
-        this.y = Math.floor((this.y + this.h) / TILE) * TILE - this.h;
+        this.lanternY = Math.floor((this.lanternY + 8) / TILE) * TILE - 8;
         this.anim.play('f');
         audio.play('bomb');
       }
     } else if (this.burning > 0) {
       this.burning -= dt;
-      if (Math.random() < 0.3) world.particles.emit({ x: this.x + Math.random() * 8, y: this.y, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40 });
+      if (Math.random() < 0.3) world.particles.emit({ x: this.x + Math.random() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40 });
       if (this.burning <= 0) {
-        // respawn after a while
         this.dead = true;
         world.add(new LanternRespawn(this.x - 4, this.restY - 4, 6));
       }
     }
   }
   get fireRect(): { x: number; y: number; w: number; h: number } | null {
-    return this.burning > 0 ? { x: this.x - 8, y: this.y - 8, w: 24, h: 16 } : null;
+    return this.burning > 0 ? { x: this.x - 8, y: this.lanternY - 8, w: 24, h: 16 } : null;
   }
   draw(r: Renderer, cx: number, cy: number): void {
-    if (this.burning > 0) r.sprite(this.anim.sprite, A.FIRE_PAL, this.x - cx, this.y - cy);
+    if (this.burning > 0) r.sprite(this.anim.sprite, A.FIRE_PAL, this.x - cx, this.lanternY - cy);
     else {
-      // chain
-      for (let y = 0; y < this.y - 4; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, '#3c3c3c');
-      r.sprite(this.anim.sprite, A.LANTERN_PAL, this.x - cx, this.y - cy);
+      for (let y = 0; y < this.lanternY; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, '#3c3c3c');
+      r.sprite(this.anim.sprite, A.LANTERN_PAL, this.x - cx, this.lanternY - cy);
     }
   }
 }
@@ -301,7 +313,6 @@ export class Sluice implements Entity {
   }
   update(world: World): void {
     if (!this.broken) {
-      // acts as a wall
       const p = world.player;
       if (overlaps(this, p) && p.centerX < this.x + 8) {
         const pb = (p as unknown as { body: Body }).body;

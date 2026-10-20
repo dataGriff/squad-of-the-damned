@@ -382,7 +382,7 @@ export class Wolfman extends Boss {
     if (kind === 'silver' && !this.vulnerable) {
       world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, '#fcfcfc', 3, 40);
       audio.play('tick');
-      return true;
+      return false;
     }
     return super.hit(world, kind, damage, fromX);
   }
