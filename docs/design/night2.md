@@ -13,7 +13,7 @@
 Bruno's turn: two Bruno-shaped obstacles in a row. The crate is also the first physics object, so players learn he pushes by walking into it.
 
 ## Boss: The Stitched Giant
-Slow. Walks at you, winds up (0.8 s telegraph) and throws a boulder on an arc; phase 2 throws two and walks faster. Three lanterns hang in the arena. A pebble knocks one down; it burns for four seconds where it lands. If he walks into the fire **and his page is known**, he burns: stands still, vulnerable, taking a tick of fire damage every half second, then stumbles away. Lanterns rehang after six seconds.
+Slow. Walks at you, winds up (0.8 s telegraph) and throws a boulder on an arc; phase 2 throws two and walks faster. Three lanterns hang in the arena at head height. Jump and shoot one (or its chain) and it drops, burning for four seconds where it lands. If he walks into the fire **and his page is known**, he burns: stands still, vulnerable, taking a tick of fire damage every half second, then stumbles away. Lanterns rehang after six seconds.
 
 ### The redemption twist (#24)
 He does not die. At zero HP he sits down and the text "...he just wanted a friend." plays. `giantAlly` is saved and he appears next to the portal in the finale, holding it shut while the kids work the seals.

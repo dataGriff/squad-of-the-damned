@@ -294,7 +294,6 @@ export class StitchedGiant extends Boss {
     }
     super.draw(r, cx, cy, alpha);
   }
-  update2(): void {}
 }
 
 /* ------------------------------------------------------------------ */

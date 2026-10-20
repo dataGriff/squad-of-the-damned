@@ -55,7 +55,7 @@ export const NIGHTS: NightDef[] = [
     song: 'night2',
     requiredKids: ['sling', 'big'],
     source: night('night2', 'graveyard', [S.START, S.FLAT_DECO_A, S.FLAT_HANDS, S.LADDER_WALL, S.FLAT_BATS, S.LAMP, S.CRACKED, S.FLAT_HANDS, S.CRATE_LEDGE, S.FLAT_DECO_B, S.GAP_SPIKES, S.LAMP, S.SILVER, S.FLAT_HANDS, S.FLAT_DECO_A], S.ARENA_GIANT, 'giant', [
-      { type: 'page', tx: 16 * 8 + 12, ty: 6, props: { page: 'giant' } },
+      { type: 'page', tx: 16 * 8 + 12, ty: 9, props: { page: 'giant' } },
       { type: 'page', tx: 16 * 13 + 10, ty: 12, props: { page: 'hand' } },
     ]),
   },
