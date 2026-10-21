@@ -35,6 +35,12 @@ export function overlaps(a: { x: number; y: number; w: number; h: number }, b: {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
+/** A ladder's topmost tile behaves like a one-way platform so you can stand on it. */
+function isPlatformTop(map: TileMap, tx: number, ty: number): boolean {
+  const k = map.kindAt(tx, ty);
+  return k === 'oneway' || (k === 'ladder' && map.kindAt(tx, ty - 1) !== 'ladder');
+}
+
 /** True when a one-way platform top lies in (yFrom, yTo] for the body's bottom edge. */
 function onewayBelow(map: TileMap, x: number, w: number, yFrom: number, yTo: number): number | null {
   const x0 = Math.floor(x / TILE);
@@ -44,7 +50,7 @@ function onewayBelow(map: TileMap, x: number, w: number, yFrom: number, yTo: num
   for (let ty = ty0; ty <= ty1; ty++) {
     const top = ty * TILE;
     if (top < yFrom || top > yTo) continue;
-    for (let tx = x0; tx <= x1; tx++) if (map.kindAt(tx, ty) === 'oneway') return top;
+    for (let tx = x0; tx <= x1; tx++) if (isPlatformTop(map, tx, ty)) return top;
   }
   return null;
 }

@@ -113,7 +113,7 @@ export class Player implements IPlayer {
     audio.play('hurt');
     world.camera.shake(3, 0.2);
     world.freezeFrame(3, this.reducedFlash ? undefined : '#e40058');
-    if (navigator.vibrate) navigator.vibrate(60);
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(60);
     if (died) {
       this.dead = true;
       audio.play('die');
@@ -163,6 +163,13 @@ export class Player implements IPlayer {
     }
     if (this.climbing) {
       if (!map.rectHas(b.x + 2, b.y, b.w - 4, b.h, 'ladder') && !ladderBelow) this.climbing = false;
+      else if (!map.rectHas(b.x + 2, b.y, b.w - 4, b.h, 'ladder') && ladderBelow && input.axisY < 0) {
+        // climbed off the top: stand on the ladder's top tile
+        this.climbing = false;
+        b.y = Math.floor((b.y + b.h) / TILE + 1) * TILE - b.h;
+        b.vy = 0;
+        b.onGround = true;
+      }
       else if (input.pressed('jump')) {
         this.climbing = false;
         b.vy = -kid.jump * 0.6;
@@ -225,7 +232,7 @@ export class Player implements IPlayer {
     } else this.coyote -= dt;
     if (input.pressed('jump') || (this.holdToJump && input.isDown('jump') && b.onGround && !this.jumpHeld)) this.buffer = T.jumpBuffer;
     else this.buffer -= dt;
-    const dropThrough = input.isDown('down') && input.pressed('jump') && b.onGround && !this.crouching;
+    const dropThrough = input.isDown('down') && input.pressed('jump') && b.onGround;
     if (dropThrough && map.rectHas(b.x, b.y + b.h, b.w, 2, 'oneway') && !map.rectSolid(b.x, b.y + b.h + 1, b.w, 1, b.small)) {
       b.dropThrough = true;
       b.y += 1;
