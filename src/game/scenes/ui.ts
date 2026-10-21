@@ -6,11 +6,14 @@ import { audio } from '../../engine/audio';
 import { Game, Menu, type Scene } from './scene';
 import { SONGS } from '../music';
 import { MANUAL_PAGES, pagesFound } from '../manual';
-import { CREATURE_ART } from '../art/monsters';
 import { KIDS, KID_ORDER } from '../squad';
 import { KID_SHEETS } from '../art/kids';
 import { NIGHTS } from '../levels/nights';
-import { tileSprite, THEMES } from '../art/tiles';
+import { tileSprite } from '../art/tiles';
+import { AIR_U } from '../art/autotiles';
+import { drawBackdrop } from '../backdrop';
+import { BAT, BAT_PAL, CREATURE_ART } from '../art/monsters';
+import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, ROPE_LADDER, ROPE_PAL, TREEHOUSE, TREEHOUSE_PAL } from '../art/scenery';
 import { NightScene } from './night';
 
 const GREY: readonly [null, string, string, string] = [null, '#3c3c3c', '#3c3c3c', '#3c3c3c'];
@@ -54,36 +57,50 @@ export class TitleScene implements Scene {
     }
   }
   draw(r: Renderer): void {
-    r.clear('#000000');
-    // moon + skyline backdrop
-    r.rect(0, 0, SCREEN_W, 150, '#0000a8');
-    r.rect(190, 24, 28, 28, '#f8f8b8');
-    r.rect(186, 28, 36, 20, '#f8f8b8');
-    r.rect(190, 20, 28, 36, '#f8f8b8');
-    for (let i = 0; i < 16; i++) r.rect(i * 16, 150 - ((i * 37) % 48), 16, 100, '#000000');
-    const th = THEMES.graveyard;
-    for (let x = 0; x < SCREEN_W; x += 16) {
-      const t = tileSprite(1, 'graveyard');
-      if (t) r.sprite(t.sprite, th.tiles, x, 208);
-      const f = tileSprite(2, 'graveyard');
-      if (f) r.sprite(f.sprite, th.tiles, x, 224);
+    // the graveyard backdrop, drifting slowly
+    drawBackdrop(r, 'graveyard', this.t * 10, this.t);
+    // bats crossing the moon
+    for (let i = 0; i < 3; i++) {
+      const bx = ((this.t * (22 + i * 7) + i * 97) % 320) - 32;
+      const by = 40 + i * 18 + Math.sin(this.t * 2 + i) * 6;
+      r.sprite(BAT.frames[Math.floor(this.t * 12 + i) % BAT.frames.length], BAT_PAL, bx, by);
     }
-    const g = tileSprite(9, 'graveyard');
-    if (g) {
-      r.sprite(g.sprite, th.deco, 40, 192);
-      r.sprite(g.sprite, th.deco, 200, 192);
+    // ground: one row of auto-tiled turf over solid fill
+    for (let x = 0; x < SCREEN_W; x += 16) {
+      const v = (x / 16) % 4;
+      const top = tileSprite(1, 'graveyard', 0, AIR_U, v);
+      const fill = tileSprite(2, 'graveyard', 0, 0, (v + 1) % 4);
+      if (top) r.sprite(top.sprite, top.pal, x, 208);
+      if (fill) r.sprite(fill.sprite, fill.pal, x, 224);
     }
     // the squad standing on the ground
     KID_ORDER.forEach((id, i) => {
       const s = KID_SHEETS[id].anims.idle.frames[Math.floor(this.t * 2 + i) % 2];
-      r.sprite(s, KIDS[id].palette, 88 + i * 22, 208 - s.h, false);
+      r.sprite(s, KIDS[id].palette, 84 + i * 24, 208 - s.h, false);
     });
-    r.textCentered('SQUAD OF', 60, '#e40058');
-    r.textCentered('THE DAMNED', 72, '#e40058');
-    r.rect(72, 84, 112, 1, '#f8d878');
+    // logo: a dithered dark band behind it, then the small line and the big dripping title
+    r.dither(0, 28, SCREEN_W, 68, '#000000');
+    r.dither(0, 36, SCREEN_W, 52, '#000000', 1);
+    const small = 'SQUAD OF';
+    r.bigText(small, (SCREEN_W - r.bigTextWidth(small)) / 2, 34, '#fcfcfc', '#bcbcbc');
+    const big = 'THE DAMNED';
+    const bw = r.bigTextWidth(big, 3);
+    const bx = Math.round((SCREEN_W - bw) / 2);
+    r.bigText(big, bx, 56, '#e40058', '#a80020', 3);
+    for (let i = 0; i < 7; i++) {
+      const x = bx + 6 + i * 11 + ((i * 7) % 5);
+      const len = ((this.t * 9 + i * 13) % 26) - 4;
+      if (len > 0) {
+        r.rect(x, 82, 1, Math.min(len, 14), '#a80020');
+        if (len > 14) r.sprite(DRIP, DRIP_PAL, x - 1, 82 + len - 2);
+      }
+    }
     if (!this.showMenu) {
-      if (Math.floor(this.t * 2) % 2 === 0) r.textCentered('PRESS START', 120, '#fcfcfc');
-    } else this.menu.draw(r, 110);
+      if (Math.floor(this.t * 2) % 2 === 0) r.textShadow('PRESS START', SCREEN_W / 2 - 44, 132, '#fcfcfc');
+    } else {
+      r.box(SCREEN_W / 2 - 60, 118, 120, this.menu.items.length * 12 + 12, '#000000');
+      this.menu.draw(r, 124);
+    }
     r.rect(0, 228, SCREEN_W, 12, '#000000');
     r.textCentered('HUNGOVERCODERS 2026', 230, '#bcbcbc');
   }
@@ -102,8 +119,7 @@ export class ConfirmScene implements Scene {
     this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.rect(16, 90, SCREEN_W - 32, 60, '#000000');
-    r.rect(17, 91, SCREEN_W - 34, 58, '#0000a8');
+    r.box(16, 90, SCREEN_W - 32, 60, '#0000a8');
     r.textCentered(this.text, 100, '#fcfcfc');
     this.menu.draw(r, 118);
   }
@@ -159,41 +175,44 @@ export class HubScene implements Scene {
     else if (input.pressed('pause') || input.pressed('menu') || input.pressed('jump')) this.mode = 'main';
   }
   draw(r: Renderer): void {
-    r.clear('#0000a8');
-    // tree + treehouse backdrop
-    r.rect(0, 180, SCREEN_W, 60, '#007800');
-    r.rect(112, 60, 32, 180, '#503000');
-    r.rect(60, 40, 136, 60, '#2c1600');
-    r.rect(64, 44, 128, 52, '#503000');
-    const th = THEMES.hub;
-    for (let x = 64; x < 192; x += 16) {
-      const p = tileSprite(1, 'hub');
-      if (p) r.sprite(p.sprite, th.tiles, x, 96);
+    // night sky, stars, moon and the far rooftops from the suburb set
+    drawBackdrop(r, 'suburb', 0, this.t);
+    // the oak and the treehouse
+    r.sprite(OAK_TRUNK, OAK_TRUNK_PAL, 92, 72);
+    r.sprite(OAK_CANOPY, OAK_CANOPY_PAL, 0, 6);
+    r.sprite(TREEHOUSE, TREEHOUSE_PAL, 60, 32);
+    r.sprite(ROPE_LADDER, ROPE_PAL, 150, 100);
+    // grass
+    for (let x = 0; x < SCREEN_W; x += 16) {
+      const top = tileSprite(1, 'suburb', 0, AIR_U, (x / 16) % 4);
+      const fill = tileSprite(2, 'suburb', 0, 0, (x / 16 + 2) % 4);
+      if (top) r.sprite(top.sprite, top.pal, x, 208);
+      if (fill) r.sprite(fill.sprite, fill.pal, x, 224);
     }
-    const w = tileSprite(9, 'hub');
-    if (w) {
-      r.sprite(w.sprite, th.deco, 72, 56);
-      r.sprite(w.sprite, th.deco, 168, 56);
+    // fireflies
+    for (let i = 0; i < 9; i++) {
+      const fx = (i * 53 + Math.sin(this.t * 0.7 + i) * 20 + 256) % 256;
+      const fy = 120 + ((i * 31) % 80) + Math.cos(this.t * 0.9 + i * 2) * 8;
+      if (Math.sin(this.t * 3 + i * 1.7) > -0.2) r.rect(fx, fy, 1, 1, '#f8d878');
     }
-    const l = tileSprite(10, 'hub');
-    if (l) for (let x = 40; x < 220; x += 16) r.sprite(l.sprite, th.deco, x, 28 + ((x / 16) % 2) * 4);
-    r.rect(0, 0, SCREEN_W, 24, '#000000');
-    r.textCentered('THE TREEHOUSE', 8, '#f8d878');
+    r.box(0, 0, SCREEN_W, 18, '#000000');
+    r.textCentered('THE TREEHOUSE', 5, '#f8d878');
     const { found, total } = pagesFound(this.game.save.data.pages);
-    r.text(`PAGES ${found}/${total}`, 8, 228, '#bcbcbc');
-    r.text(`SILVER ${this.game.save.data.silver}`, 160, 228, '#bcbcbc');
+    r.textShadow(`PAGES ${found}/${total}`, 8, 228, '#fcfcfc');
+    r.textShadow(`SILVER ${this.game.save.data.silver}`, 160, 228, '#fcfcfc');
     if (this.mode === 'main') {
       KID_ORDER.forEach((id, i) => {
         const s = KID_SHEETS[id].anims.idle.frames[Math.floor(this.t * 2 + i) % 2];
-        r.sprite(s, KIDS[id].palette, 72 + i * 30, 96 - s.h, i > 1);
+        r.sprite(s, KIDS[id].palette, 76 + i * 28, 92 - s.h, i > 1);
       });
-      this.menu.draw(r, 130);
+      r.box(SCREEN_W / 2 - 76, 136, 152, 72, '#000000');
+      this.menu.draw(r, 144);
     } else if (this.mode === 'nights') {
-      r.rect(8, 104, SCREEN_W - 16, 112, '#000000');
-      this.nightMenu.draw(r, 110, '#fcfcfc', '#7c7c7c', false, 12);
+      r.box(4, 100, SCREEN_W - 8, 120, '#000000');
+      this.nightMenu.draw(r, 108, '#fcfcfc', '#7c7c7c', false, 12);
       r.text('* = CLEARED', 12, 204, '#bcbcbc');
     } else {
-      r.rect(8, 100, SCREEN_W - 16, 120, '#000000');
+      r.box(4, 96, SCREEN_W - 8, 128, '#000000');
       KID_ORDER.forEach((id, i) => {
         const k = KIDS[id];
         const s = KID_SHEETS[id].anims.idle.frames[0];
@@ -274,8 +293,7 @@ export class OptionsScene implements Scene {
   }
   draw(r: Renderer): void {
     const o = this.game.save.data.options;
-    r.rect(8, 24, SCREEN_W - 16, 192, '#000000');
-    r.rect(9, 25, SCREEN_W - 18, 190, '#0000a8');
+    r.box(8, 24, SCREEN_W - 16, 192, '#0000a8');
     r.textCentered('OPTIONS', 32, '#f8d878');
     const vals: Record<string, string> = {
       MUSIC: bar(o.musicVolume),
@@ -335,8 +353,7 @@ export class RemapScene implements Scene {
     if (input.pressed('pause')) this.game.pop();
   }
   draw(r: Renderer): void {
-    r.rect(8, 24, SCREEN_W - 16, 192, '#000000');
-    r.rect(9, 25, SCREEN_W - 18, 190, '#0000a8');
+    r.box(8, 24, SCREEN_W - 16, 192, '#0000a8');
     r.textCentered('REMAP KEYS', 32, '#f8d878');
     this.actions.forEach((a, i) => {
       const sel = i === this.index;
@@ -373,35 +390,59 @@ export class ManualScene implements Scene {
   draw(r: Renderer): void {
     const page = MANUAL_PAGES[this.index];
     const found = this.game.save.hasPage(page.id);
-    // parchment
-    r.rect(8, 20, SCREEN_W - 16, 200, '#2c1600');
+    // open book: leather cover, two parchment pages, a gutter shadow
+    r.rect(6, 18, SCREEN_W - 12, 204, '#2c1600');
+    r.rect(8, 20, SCREEN_W - 16, 200, '#503000');
     r.rect(12, 24, SCREEN_W - 24, 192, '#f8d8c8');
+    r.dither(SCREEN_W / 2 - 6, 24, 6, 192, '#f0d0b0');
+    r.dither(SCREEN_W / 2 + 1, 24, 6, 192, '#f0d0b0', 1);
     r.rect(SCREEN_W / 2, 24, 1, 192, '#503000');
+    // framed hint art, pixel-doubled when it fits
     const art = CREATURE_ART[page.art];
-    const ax = 20 + 48 - art.sprite.w / 2;
-    const ay = 40 + 48 - art.sprite.h / 2;
-    r.sprite(art.sprite, found ? art.pal : GREY, ax, ay);
-    r.text(found ? page.creature : '???', 20, 100, '#2c1600');
-    r.text(page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 20, 112, '#503000');
+    const scale = Math.max(1, Math.min(3, Math.floor(Math.min(84 / art.sprite.w, 80 / art.sprite.h))));
+    r.rect(18, 30, 98, 88, '#503000');
+    r.rect(20, 32, 94, 84, found ? '#000000' : '#3c3c3c');
+    r.spriteScaled(art.sprite, found ? art.pal : GREY, 67 - (art.sprite.w * scale) / 2, 112 - art.sprite.h * scale, scale);
+    wrap(found ? page.creature : '???', 12).forEach((l, i) => r.text(l, 18, 124 + i * 10, '#2c1600'));
+    r.text(page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148, '#a80020');
     const lx = SCREEN_W / 2 + 8;
+    const col = 13;
     if (found) {
-      page.lore.forEach((line, i) => r.text(line, lx, 40 + i * 10, '#2c1600'));
-      r.text('WEAKNESS:', lx, 84, '#e40058');
-      r.text(page.weaknessText, lx, 96, '#2c1600');
-      r.text(page.hint.slice(0, 14), lx, 106, '#2c1600');
-      r.text(page.hint.slice(14, 28), lx, 116, '#2c1600');
-      r.text(page.hint.slice(28, 42), lx, 126, '#2c1600');
+      let y = 32;
+      for (const l of wrap(page.lore.join(' '), col)) {
+        r.text(l, lx, y, '#2c1600');
+        y += 10;
+      }
+      y += 6;
+      r.text('WEAKNESS:', lx, y, '#a80020');
+      y += 12;
+      for (const l of wrap(`${page.weaknessText} ${page.hint}`, col)) {
+        r.text(l, lx, y, '#2c1600');
+        y += 10;
+      }
     } else {
-      r.text('PAGE NOT FOUND', lx, 40, '#7c7c7c');
-      r.text('YET.', lx, 50, '#7c7c7c');
-      r.text('LOOK BEHIND', lx, 70, '#7c7c7c');
-      r.text('VENTS AND', lx, 80, '#7c7c7c');
-      r.text('CRACKED WALLS.', lx, 90, '#7c7c7c');
+      wrap('PAGE NOT FOUND YET. LOOK BEHIND VENTS AND CRACKED WALLS.', col).forEach((l, i) => r.text(l, lx, 32 + i * 10, '#7c7c7c'));
     }
     const { found: f, total } = pagesFound(this.game.save.data.pages);
     r.text(`◄ ${this.index + 1}/${MANUAL_PAGES.length} ►`, 20, 200, '#503000');
     r.text(`FOUND ${f}/${total}`, 150, 200, '#503000');
   }
+}
+
+/** Word-wrap to lines of at most `width` characters. */
+export function wrap(text: string, width: number): string[] {
+  const out: string[] = [];
+  let line = '';
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    if (!line) line = word;
+    else if (line.length + 1 + word.length <= width) line += ' ' + word;
+    else {
+      out.push(line);
+      line = word;
+    }
+  }
+  if (line) out.push(line);
+  return out;
 }
 
 export class PauseScene implements Scene {
@@ -422,8 +463,7 @@ export class PauseScene implements Scene {
     this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.rect(48, 80, SCREEN_W - 96, 80, '#000000');
-    r.rect(49, 81, SCREEN_W - 98, 78, '#0000a8');
+    r.box(44, 78, SCREEN_W - 88, 84, '#0000a8');
     r.textCentered('PAUSED', 88, '#f8d878');
     this.menu.draw(r, 106);
   }

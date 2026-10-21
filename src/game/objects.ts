@@ -57,12 +57,8 @@ export class Lamp extends Static {
     }
   }
   draw(r: Renderer, cx: number, cy: number): void {
+    if (this.lit) r.sprite(A.LAMP_GLOW, A.LAMP_GLOW_PAL, this.x - 2 + 8 - 24 - cx, this.y + 8 - 8 - cy);
     r.sprite(this.lit ? A.LAMP_ON : A.LAMP_OFF, A.LAMP_PAL, this.x - 2 - cx, this.y - cy);
-    if (this.lit) {
-      r.ctx.globalAlpha = 0.15;
-      r.rect(this.x - 10 - cx, this.y + 2 - cy, 32, 28, '#f8f8b8');
-      r.ctx.globalAlpha = 1;
-    }
   }
 }
 

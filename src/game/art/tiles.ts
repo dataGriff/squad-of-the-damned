@@ -1,10 +1,10 @@
 /**
- * Tilesets (#40): one shared set of 16×16 patterns, re-coloured per night theme
- * (suburb, graveyard, mansion, sewer, storm drain). Ground tops pick grass or
- * stone edges per theme. Each tile is 4 colours like everything else.
+ * Tilesets (#40): per-theme palettes, hand-drawn decoration tiles, and the
+ * auto-tiled structural tiles from autotiles.ts. Each tile is 4 colours.
  */
 import { defineSprite, type Sprite } from '../../engine/sprites';
 import { pal, type SpritePalette } from '../palette';
+import { AIR_U, allAutoTileSprites, autoTile } from './autotiles';
 
 const S = defineSprite;
 
@@ -28,32 +28,6 @@ export const THEMES: Record<Theme, ThemeDef> = {
   drain: { sky: '#000000', tiles: pal('drainBlue', 'teal', 'cyan'), deco: pal('black', 'drainBlue', 'skyBlue'), groundTop: 'stone', bands: [[0.4, '#004058']] },
   hub: { sky: '#0000a8', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'olive', 'moon'), groundTop: 'plank', bands: [[0.6, '#007800']] },
 };
-
-const FILL = S('t_fill', [
-  '1222222212222222', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222', '2222122222221222', '2222122222221222', '1111111111111111', '1222222212222222', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222', '2222122222221222', '2222122222221222', '1111111111111111',
-]);
-const GRASS = S('t_grass', [
-  '.3.33..3.3..33.3', '3333333333333333', '3333333333333333', '1313313131331313', '1111111111111111', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222', '2222122222221222', '2222122222221222', '1111111111111111', '1222222212222222', '1222222212222222', '1222222212222222', '1111111111111111',
-]);
-const STONE = S('t_stone', [
-  '3333333333333333', '3222232222322223', '1111111111111111', '2322222322222322', '2222222222222222', '1111111111111111', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222', '2222122222221222', '1111111111111111', '1222222212222222', '1222222212222222', '1222222212222222', '1111111111111111',
-]);
-const PLANK = S('t_plank', [
-  '3333333333333333', '3222322223222232', '3222222222222222', '1111111111111111', '3222222322222222', '3222222222222222', '1111111111111111', '2222322222222322', '2222222222222222', '1111111111111111', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222', '2222122222221222', '1111111111111111',
-]);
-const BRICKTOP = S('t_bricktop', [
-  '3333333333333333', '3131313131313131', '1111111111111111', '1222222212222222', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222', '2222122222221222', '2222122222221222', '1111111111111111', '1222222212222222', '1222222212222222', '1222222212222222', '1111111111111111', '2222122222221222',
-]);
-const PLATFORM = S('t_platform', ['3333333333333333', '3222322223222232', '1111111111111111', '.1............1.', '.1............1.', '................', '................', '................', '................', '................', '................', '................', '................', '................', '................', '................']);
-const LADDER = S('t_ladder', ['.11..........11.', '.11..........11.', '.11111111111111.', '.11..........11.', '.11..........11.', '.11..........11.', '.11111111111111.', '.11..........11.', '.11..........11.', '.11..........11.', '.11111111111111.', '.11..........11.', '.11..........11.', '.11..........11.', '.11111111111111.', '.11..........11.']);
-const CRACKED = S('t_cracked', [
-  '1222222212222222', '1222221112222222', '1222221212222222', '1111111112222222', '2222122212221222', '2222122221121222', '2222122222211222', '1111111111121111', '1222222212211222', '1222222212122222', '1222222211222222', '1111111112111111', '2222122221221222', '2222122212221222', '2222122222221222', '1111111111111111',
-]);
-const SPIKE = S('t_spike', ['...3.......3....', '..313.....313...', '..313.....313...', '.31113...31113..', '.31113...31113..', '3111113.3111113.', '3111113.3111113.', '1111111111111111', '1111111111111111', '1111111111111111', '1111111111111111', '1111111111111111', '1111111111111111', '1111111111111111', '1111111111111111', '1111111111111111']);
-const VENT = S('t_vent', ['1111111111111111', '1333333333333331', '1311111111111131', '1333333333333331', '1311111111111131', '1333333333333331', '1311111111111131', '1333333333333331', '1311111111111131', '1333333333333331', '1311111111111131', '1333333333333331', '1311111111111131', '1333333333333331', '1311111111111131', '1111111111111111']);
-const WATER_A = S('t_water0', ['3.3..3.3..3.3..3', '2322232223222322', '2222222222222222', '2222222222222222', '2222122222221222', '2222222222222222', '2222222222222222', '2212222222122222', '2222222222222222', '2222222222222222', '2222221222222212', '2222222222222222', '2222222222222222', '2122222221222222', '2222222222222222', '2222222222222222']);
-const WATER_B = S('t_water1', ['.3.3..3.3..3.3..', '3222322232223222', '2222222222222222', '2222222222222222', '2222222122222221', '2222222222222222', '2222222222222222', '2222122222221222', '2222222222222222', '2222222222222222', '2212222222122222', '2222222222222222', '2222222222222222', '2222212222222122', '2222222222222222', '2222222222222222']);
-const PILLAR = S('t_pillar', ['1333333333333331', '1322222222222231', '1322222222222231', '1311111111111131', '1322222222222231', '1322222222222231', '1322222222222231', '1322222222222231', '1322222222222231', '1322222222222231', '1322222222222231', '1322222222222231', '1311111111111131', '1322222222222231', '1322222222222231', '1333333333333331']);
 
 // deco per theme: gravestone/fence/bookshelf/pipe/barrel, bush/candle/window, sign/cobweb
 const DECO: Record<Theme, [Sprite, Sprite, Sprite]> = {
@@ -92,27 +66,31 @@ const DECO: Record<Theme, [Sprite, Sprite, Sprite]> = {
 const LAMP_TILE = S('t_lamp', ['.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '.......11.......', '......1111......', '................']);
 const DOOR_TILE = S('t_door', ['.111111111111...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222231...', '.122222222231...', '.122222222221...', '.122222222221...', '.122222222221...', '.122222222221...', '.111111111111...']);
 
-/** gid (1-based) → sprite for a theme. Water alternates with `frame`. */
-export function tileSprite(gid: number, theme: Theme, frame = 0): { sprite: Sprite; pal: SpritePalette } | null {
+/**
+ * gid (1-based) → sprite for a theme. Structural tiles are auto-tiled: `mask`
+ * says which neighbours are open (AIR_U | AIR_L | AIR_R | AIR_D) and `variant`
+ * picks one of four fills. Water and candles animate with `frame`.
+ */
+export function tileSprite(gid: number, theme: Theme, frame = 0, mask = AIR_U, variant = 0): { sprite: Sprite; pal: SpritePalette } | null {
   const t = THEMES[theme];
   switch (gid) {
     case 1:
-      return { sprite: t.groundTop === 'grass' ? GRASS : t.groundTop === 'stone' ? STONE : t.groundTop === 'plank' ? PLANK : BRICKTOP, pal: t.tiles };
     case 2:
+      return autoTile('solid', theme, t.tiles, mask, variant, frame);
     case 14:
-      return { sprite: gid === 2 ? FILL : PILLAR, pal: t.tiles };
+      return autoTile('pillar', theme, t.tiles, mask, variant, frame);
     case 3:
-      return { sprite: PLATFORM, pal: t.tiles };
+      return autoTile('platform', theme, t.tiles, mask, variant, frame);
     case 4:
-      return { sprite: LADDER, pal: t.tiles };
+      return autoTile('ladder', theme, t.tiles, mask, variant, frame);
     case 5:
-      return { sprite: CRACKED, pal: t.tiles };
+      return autoTile('cracked', theme, t.tiles, mask, variant, frame);
     case 6:
-      return { sprite: SPIKE, pal: pal('darkGrey', 'grey', 'lightGrey') };
+      return autoTile('spike', theme, t.tiles, mask, variant, frame);
     case 7:
-      return { sprite: VENT, pal: pal('darkGrey', 'grey', 'lightGrey') };
+      return autoTile('vent', theme, t.tiles, mask, variant, frame);
     case 8:
-      return { sprite: frame % 2 ? WATER_B : WATER_A, pal: theme === 'sewer' ? pal('bogGreen', 'olive', 'lime') : pal('navy', 'blue', 'skyBlue') };
+      return autoTile('water', theme, t.tiles, mask, variant, frame);
     case 9:
       return { sprite: DECO[theme][0], pal: t.deco };
     case 10:
@@ -129,7 +107,7 @@ export function tileSprite(gid: number, theme: Theme, frame = 0): { sprite: Spri
 }
 
 export function allTileSprites(): Sprite[] {
-  const out: Sprite[] = [FILL, GRASS, STONE, PLANK, BRICKTOP, PLATFORM, LADDER, CRACKED, SPIKE, VENT, WATER_A, WATER_B, PILLAR, LAMP_TILE, DOOR_TILE];
+  const out: Sprite[] = [...allAutoTileSprites(), LAMP_TILE, DOOR_TILE];
   for (const d of Object.values(DECO)) out.push(...d);
   return out;
 }

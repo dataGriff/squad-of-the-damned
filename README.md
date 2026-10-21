@@ -36,6 +36,19 @@ Keys are remappable in Options. Dev keys: **F3** death heatmap, **F9** start/sto
 
 The squad shares one HP pool. Swapping is instant with a freeze-frame and flash, and is refused if the new kid would not fit where you are standing.
 
+## Art
+
+Everything is drawn into a 256×240 buffer under NES rules: 16px tiles, every sprite at most 4 colours (transparent + 3) from a master palette of genuine 2C02 entries, no alpha blending.
+
+- **Characters** (`src/game/art/kids.ts`, `monsters.ts`, `items.ts`): hand-placed pixels plus shape helpers, with rim lighting so dark silhouettes read on dark backgrounds.
+- **Auto-tiles** (`src/game/art/autotiles.ts`): solid tiles pick a surface lip, corners and edge shading from their neighbours, plus one of four fill variants. Platforms, ladders, spikes, vents and water have per-theme versions.
+- **Parallax backdrops** (`src/game/art/backdrops.ts`): dithered skies, a moon and halo, and 3–6 depth layers per theme, generated with the `PixelArt` helper (`src/engine/pixelart.ts`: Bayer dithering, shapes, outlines, seamless wrapping).
+- **Effects without alpha**: checkerboard dither for flashes and lamplight, flicker for boss deaths, and an NES-style palette-step fade (`src/engine/fade.ts`) on scene changes and respawns.
+
+`npm run check:palette` covers all ~1,500 generated and hand-drawn sprites.
+
+![Before and after the art pass](docs/screenshots/art-pass-before-after.png)
+
 ## Knowledge as progression
 
 Every boss has a weakness, but it only does damage once that monster's page of the **Monster Manual** has been found. Pages hide behind vents and cracked walls; field-note pages live in secret rooms. Read the manual from the pause menu.

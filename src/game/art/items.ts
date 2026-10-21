@@ -1,6 +1,7 @@
 /** Pickups, projectiles, props and UI sprites. */
 import { anim, defineSprite, type AnimDef, type Sprite } from '../../engine/sprites';
 import { pal, type SpritePalette } from '../palette';
+import { BAYER4, PixelArt } from '../../engine/pixelart';
 
 const S = defineSprite;
 
@@ -13,13 +14,45 @@ export const PAGE: AnimDef = anim(
   3,
 );
 
-export const LAMP_PAL = pal('darkGrey', 'moon', 'grey');
-export const LAMP_OFF: Sprite = S('lamp_off', [
-  '....1111....', '...133331...', '...133331...', '...133331...', '....1111....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '....1111....', '...111111...', '............',
-].map((r) => r.replace(/3/g, '1')));
-export const LAMP_ON: Sprite = S('lamp_on', [
-  '....1111....', '...122221...', '...122221...', '...122221...', '....1111....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '.....11.....', '....1111....', '...111111...', '............',
-]);
+export const LAMP_PAL = pal('black', 'moon', 'grey');
+/** Victorian streetlamp checkpoint (16×32): unlit glass is dark, lit glass glows. */
+function streetlamp(lit: boolean): Sprite {
+  const p = new PixelArt(16, 32);
+  // lantern cage
+  p.tri(3, 4, 8, 0, 13, 4, 3);
+  p.rect(7, 0, 2, 1, 3);
+  p.rect(4, 4, 8, 7, 1);
+  p.rect(5, 5, 6, 5, lit ? 2 : 1);
+  p.vline(8, 5, 5, 1);
+  if (lit) p.set(6, 6, 3);
+  p.rect(3, 11, 10, 1, 3);
+  p.rect(5, 12, 6, 1, 1);
+  // scrolled arms
+  p.set(3, 12, 3).set(2, 13, 3).set(12, 12, 3).set(13, 13, 3);
+  // post with collars
+  p.rect(7, 13, 2, 16, 3);
+  p.vline(8, 13, 16, 1);
+  p.rect(6, 18, 4, 1, 3).rect(6, 24, 4, 1, 3);
+  // base
+  p.rect(5, 28, 6, 2, 3).rect(4, 30, 8, 2, 3);
+  p.hline(4, 31, 8, 1).vline(10, 28, 2, 1);
+  return p.toSprite(lit ? 'lamp_on' : 'lamp_off');
+}
+export const LAMP_OFF: Sprite = streetlamp(false);
+export const LAMP_ON: Sprite = streetlamp(true);
+/** Dithered pool of lamplight (drawn under a lit lamp, no alpha blending). */
+export const LAMP_GLOW: Sprite = (() => {
+  const p = new PixelArt(48, 40);
+  for (let y = 0; y < 40; y++)
+    for (let x = 0; x < 48; x++) {
+      const k = Math.hypot((x - 24) / 24, (y - 8) / 32);
+      if (k > 1) continue;
+      const th = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+      if (th < (1 - k) * 0.45) p.set(x, y, 1);
+    }
+  return p.toSprite('lamp_glow');
+})();
+export const LAMP_GLOW_PAL = pal('yellow', 'yellow', 'yellow');
 
 export const CRATE_PAL = pal('darkBrown', 'brown', 'tan');
 export const CRATE: Sprite = S('crate', [
@@ -97,9 +130,20 @@ export const PORTAL: AnimDef = anim(
 );
 
 export const DOOR_PAL = pal('darkBrown', 'brown', 'tan');
-export const EXIT: Sprite = S('exit', [
-  '....11111111....', '...1222222221...', '..122222222221..', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222223221.', '.12222222223221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.12222222222221.', '.11111111111111.',
-]);
+/** Arched oak door with iron straps and a ring knocker. */
+export const EXIT: Sprite = (() => {
+  const p = new PixelArt(16, 32);
+  p.rect(0, 6, 16, 26, 1);
+  p.ellipse(8, 7, 8, 7, 1);
+  p.rect(1, 7, 14, 25, 2);
+  p.ellipse(8, 8, 7, 6, 2);
+  for (const x of [4, 8, 12]) p.vline(x, 3, 29, 1);
+  for (const y of [9, 24]) p.rect(1, y, 14, 2, 1).hline(1, y, 14, 3);
+  p.circle(11, 17, 1.6, 3);
+  p.set(11, 17, 2);
+  p.vline(2, 4, 28, 3);
+  return p.toSprite('exit');
+})();
 
 export const BOULDER_PAL = pal('darkGrey', 'grey', 'lightGrey');
 export const BOULDER: Sprite = S('boulder', ['..111111..', '.12222221.', '1223222221', '1222222221', '1222222321', '1222222221', '1322222221', '1222222221', '.12222221.', '..111111..']);
@@ -113,7 +157,7 @@ export const ITEM_PALETTES: Record<string, SpritePalette> = { page: PAGE_PAL, la
 
 export function allItemSprites(): Sprite[] {
   return [
-    ...PAGE.frames, LAMP_OFF, LAMP_ON, CRATE, ...SILVER.frames, HEART, PEBBLE, SILVER_SHOT, CHARGED_SHOT, ...GARLIC_BOMB.frames, ...STUN_CLOUD.frames,
+    ...PAGE.frames, LAMP_OFF, LAMP_ON, LAMP_GLOW, CRATE, ...SILVER.frames, HEART, PEBBLE, SILVER_SHOT, CHARGED_SHOT, ...GARLIC_BOMB.frames, ...STUN_CLOUD.frames,
     ...LANTERN.frames, ...FIRE.frames, VALVE, ...SPRAY.frames, SLUICE, SLUICE_BROKEN, SEAL_OFF, SEAL_ON, ...PORTAL.frames, EXIT, BOULDER, BANDAGE, BUBBLE,
   ];
 }

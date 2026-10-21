@@ -34,6 +34,20 @@ export const MASTER_PALETTE: Record<string, string> = {
   bogGreen: '#005800',
   drainBlue: '#004058',
   moon: '#f8f8b8',
+  // added for the art pass: all are entries of the 2C02 NES palette
+  indigo: '#4428bc',
+  plum: '#940084',
+  maroon: '#a81000',
+  darkRed: '#881400',
+  rust: '#ac7c00',
+  sand: '#fce0a8',
+  lavender: '#d8b8f8',
+  midGreen: '#00a800',
+  darkGreen: '#006800',
+  periwinkle: '#6888fc',
+  mist: '#b8b8f8',
+  amber: '#fca044',
+  crimson: '#a80020',
 };
 
 export type PaletteName = keyof typeof MASTER_PALETTE;

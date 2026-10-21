@@ -6,8 +6,9 @@ import { KIDS, KID_ORDER, type Squad } from './squad';
 import { SILVER, SILVER_PAL } from './art/items';
 
 export function drawHud(r: Renderer, squad: Squad, timer: number | null, pagePopup: string | null, popupT: number): void {
-  // top bar
+  // top bar with a thin rule under it
   r.rect(0, 0, SCREEN_W, 16, '#000000');
+  r.rect(0, 16, SCREEN_W, 1, '#3c3c3c');
   // portraits
   let x = 2;
   for (const id of KID_ORDER) {
@@ -47,8 +48,7 @@ export function drawHud(r: Renderer, squad: Squad, timer: number | null, pagePop
     r.text('B:' + ABILITY_HINT[squad.active], SCREEN_W - 8 * (2 + ABILITY_HINT[squad.active].length) - 2, 4, '#7c7c7c');
   }
   if (pagePopup && popupT > 0) {
-    r.rect(24, 200, SCREEN_W - 48, 26, '#000000');
-    r.rect(25, 201, SCREEN_W - 50, 24, '#f8d8c8');
+    r.box(20, 198, SCREEN_W - 40, 30, '#f8d8c8', '#fcfcfc', '#503000');
     r.textCentered('MANUAL PAGE FOUND!', 204, '#2c1600');
     r.textCentered(pagePopup, 214, '#503000');
   }

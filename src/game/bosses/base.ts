@@ -144,9 +144,9 @@ export abstract class Boss implements Damageable {
     let pal: SpritePalette = this.pal;
     if (this.flashTime > 0) pal = WHITE;
     else if (this.defeatTime >= 0 && Math.floor(this.defeatTime * 12) % 2 === 0) pal = WHITE;
-    if (this.defeatTime >= 0 && this.defeatTime > 1.5) r.ctx.globalAlpha = Math.max(0, 1 - (this.defeatTime - 1.5) * 2);
-    r.sprite(s, pal, x, y, this.dir > 0);
-    r.ctx.globalAlpha = 1;
+    // final half-second: flicker out, skipping more frames as it goes (no alpha on a NES)
+    const fading = this.defeatTime > 1.5 ? (this.defeatTime - 1.5) * 2 : 0;
+    if (!fading || Math.floor(this.defeatTime * 60) % 4 >= Math.ceil(fading * 4)) r.sprite(s, pal, x, y, this.dir > 0);
     if (this.machine.stunTime > 0) r.text('* * *', x + this.sw / 2 - 20, y - 10, '#b8f8d8');
     else if (this.machine.telegraphing) r.text('!', x + this.sw / 2 - 4, y - 10, '#f8d878');
   }

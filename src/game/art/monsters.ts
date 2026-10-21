@@ -1,411 +1,482 @@
 /**
- * Monster sprite sheets and boss animations (#39).
- * Palette indices: 1 = dark outline, 2 = body colour, 3 = highlight/eyes.
+ * Monster sprite sheets and boss animations (#39), redrawn for the art pass.
+ * Built with PixelArt shapes plus hand-placed detail. Indices: 1 = dark
+ * outline/shade, 2 = body, 3 = highlight. Bosses face left; the renderer
+ * flips them to face right.
  */
-import { anim, defineSprite, type AnimDef, type Sprite } from '../../engine/sprites';
+import { anim, type AnimDef, type Sprite } from '../../engine/sprites';
+import { PixelArt } from '../../engine/pixelart';
 import { pal, type SpritePalette } from '../palette';
 
-const S = defineSprite;
+const sp = (p: PixelArt, name: string): Sprite => p.toSprite(name);
 
-/* ---------------- fodder ---------------- */
+/** Paint index `rim` on every opaque pixel that borders transparency (rim light / outline inside the shape). */
+function rim(p: PixelArt, from: number, to: number): PixelArt {
+  const src = p.px.slice();
+  for (let y = 0; y < p.h; y++)
+    for (let x = 0; x < p.w; x++) {
+      if (src[y * p.w + x] !== from) continue;
+      const open = (xx: number, yy: number) => xx < 0 || yy < 0 || xx >= p.w || yy >= p.h || src[yy * p.w + xx] === 0;
+      if (open(x - 1, y) || open(x + 1, y) || open(x, y - 1) || open(x, y + 1)) p.set(x, y, to);
+    }
+  return p;
+}
+
+function mirrorX(p: PixelArt): PixelArt {
+  const q = new PixelArt(p.w, p.h);
+  q.blit(p, 0, 0, true);
+  return q;
+}
+
+/* ================================================================== */
+/* Fodder                                                               */
+/* ================================================================== */
 
 export const BAT_PAL = pal('black', 'purple', 'red');
-export const BAT: AnimDef = anim(
-  [
-    S('bat_0', ['1..........1', '11...11...11', '.111.11.111.', '..11131311..', '...111111...', '....1..1....']),
-    S('bat_1', ['............', '............', '.....11.....', '.111131311..', '11..111111.1', '.....1..1...'].map((r) => r.padEnd(12, '.'))),
-  ],
-  8,
-);
+function bat(frame: number): Sprite {
+  const p = new PixelArt(16, 12);
+  // body + ears + eyes
+  p.ellipse(8, 6, 2.5, 3, 1);
+  p.set(6, 2, 1).set(10, 2, 1).set(7, 3, 1).set(9, 3, 1);
+  p.set(7, 5, 3).set(9, 5, 3);
+  const wing = (dir: number) => {
+    const ox = 8 + dir * 2;
+    const tips = frame === 0 ? [[ox + dir * 6, 0], [ox + dir * 4, 7]] : frame === 1 ? [[ox + dir * 7, 4], [ox + dir * 4, 9]] : [[ox + dir * 6, 10], [ox + dir * 3, 10]];
+    p.tri(ox, 4, tips[0][0], tips[0][1], tips[1][0], tips[1][1], 2);
+    p.tri(ox, 4, tips[1][0], tips[1][1], ox, 8, 2);
+    p.line(ox, 4, tips[0][0], tips[0][1], 1);
+    p.line(ox, 5, tips[1][0], tips[1][1], 1);
+  };
+  wing(-1);
+  wing(1);
+  return sp(p, `bat_${frame}`);
+}
+export const BAT: AnimDef = anim([bat(0), bat(1), bat(2), bat(1)], 12);
 
 export const RAT_PAL = pal('black', 'grey', 'pink');
-export const RAT: AnimDef = anim(
-  [
-    S('rat_0', ['..............1.', '..1222.......11.', '.12222211....1..', '12232222211.11..', '112222222221....', '..11..11.111....']),
-    S('rat_1', ['..............1.', '..1222.......11.', '.12222211...1...', '12232222211.1...', '112222222221....', '.11....11..11...']),
-  ],
-  8,
-);
+function rat(frame: number): Sprite {
+  const p = new PixelArt(18, 9);
+  p.ellipse(9, 5, 6, 3, 2);
+  p.ellipse(4, 5, 3, 2.2, 2); // head
+  p.tri(0, 6, 3, 4, 3, 7, 2); // snout
+  p.set(0, 6, 3).set(3, 2, 2).set(4, 2, 2).set(4, 3, 3); // nose, ear
+  p.set(3, 4, 1); // eye
+  rim(p, 2, 1);
+  p.set(4, 3, 3);
+  // belly highlight and fur
+  for (let x = 6; x < 14; x += 2) p.set(x, 3, 1);
+  // tail
+  for (let x = 14; x < 18; x++) p.set(x, 5 - Math.round(Math.sin((x + frame * 2) / 1.5)), 3);
+  // legs
+  const legs = frame === 0 ? [5, 7, 11, 13] : [4, 8, 10, 14];
+  for (const lx of legs) p.set(lx, 8, 1);
+  return sp(p, `rat_${frame}`);
+}
+export const RAT: AnimDef = anim([rat(0), rat(1)], 10);
 
 export const HAND_PAL = pal('black', 'olive', 'lime');
-export const HAND: AnimDef = anim(
-  [
-    S('hand_0', ['.1.1.1..', '12121.1.', '12121211', '12222221', '.122221.', '.122221.', '..1221..', '..1221..', '..1221..', '..1221..', '..1221..', '..1221..']),
-    S('hand_1', ['........', '........', '.1.1.1..', '1212111.', '12121211', '12222221', '.122221.', '..1221..', '..1221..', '..1221..', '..1221..', '..1221..']),
-    S('hand_2', ['........', '........', '........', '........', '........', '........', '.111111.', '11222211', '..1221..', '..1221..', '..1221..', '..1221..']),
-  ],
-  6,
-);
+function hand(stage: number): Sprite {
+  const p = new PixelArt(12, 14);
+  // mound of earth
+  p.ellipse(6, 13.5, 6, 2.5, 1);
+  if (stage === 2) {
+    p.set(4, 11, 2).set(6, 10, 2).set(8, 11, 2); // fingertips just breaking the soil
+    return sp(p, `hand_${stage}`);
+  }
+  const top = stage === 0 ? 0 : 4;
+  // forearm
+  p.rect(4, top + 7, 4, 13 - top - 7, 2);
+  p.vline(4, top + 7, 13 - top - 7, 3);
+  // palm and fingers (clawed, spread)
+  p.rect(3, top + 4, 6, 4, 2);
+  for (const [fx, fh] of [[3, 3], [5, 4], [7, 4], [9, 2]]) p.rect(fx, top + 4 - fh, 1, fh, 2);
+  p.set(1, top + 5, 2).set(2, top + 6, 2); // thumb
+  rim(p, 2, 1);
+  for (const fx of [3, 5, 7]) p.set(fx, top + 4 - (fx === 3 ? 3 : 4), 3);
+  p.set(5, top + 6, 3).set(6, top + 9, 1);
+  return sp(p, `hand_${stage}`);
+}
+export const HAND: AnimDef = anim([hand(0), hand(1), hand(2)], 6);
 
 export const FROG_PAL = pal('black', 'olive', 'lime');
-export const FROG: AnimDef = anim(
-  [
-    S('frog_0', ['..11......11....', '.1331....1331...', '.1222111112221..', '122222222222221.', '122222222222221.', '.1222222222221..', '11.111111111.11.', '1...1.....1...1.']),
-    S('frog_1', ['..11......11....', '.1331....1331...', '.1222111112221..', '122222222222221.', '122222222222221.', '11222222222221..', '1.1111111111.1..', '..............1.']),
-  ],
-  6,
-);
+function frog(frame: number): Sprite {
+  const p = new PixelArt(16, 11);
+  const y0 = frame === 0 ? 1 : 3;
+  p.ellipse(8, y0 + 5, 7, 4, 2);
+  p.circle(4, y0 + 2, 2.2, 2);
+  p.circle(12, y0 + 2, 2.2, 2);
+  rim(p, 2, 1);
+  p.set(4, y0 + 2, 3).set(12, y0 + 2, 3).set(4, y0 + 1, 1).set(12, y0 + 1, 1);
+  p.hline(5, y0 + 6, 6, 1); // mouth
+  for (const [x, y] of [[6, y0 + 4], [10, y0 + 5], [8, y0 + 3]]) p.set(x, y, 3);
+  // legs: tucked or springing
+  if (frame === 0) {
+    p.rect(1, y0 + 8, 3, 2, 2).rect(12, y0 + 8, 3, 2, 2).set(0, 10, 1).set(15, 10, 1);
+  } else {
+    p.line(2, y0 + 7, 0, 10, 2).line(13, y0 + 7, 15, 10, 2);
+  }
+  return sp(p, `frog_${frame}`);
+}
+export const FROG: AnimDef = anim([frog(0), frog(1)], 6);
 
-/* ---------------- bosses ---------------- */
+/* ================================================================== */
+/* Night 1: the Count (24×32)                                           */
+/* ================================================================== */
 
 export const VAMPIRE_PAL = pal('black', 'red', 'cream');
-const VAMP_IDLE = [
-  '........11111111........',
-  '.......1111111111.......',
-  '.......1133333311.......',
-  '.......1333333331.......',
-  '.......1313333131.......',
-  '.......1333333331.......',
-  '.......1331331331.......',
-  '........13333331........',
-  '.....1111133331111......',
-  '....11111111111111......',
-  '...1111221111221111.....',
-  '..111112211112211111....',
-  '..11111122222211111.1...',
-  '..11111111111111111.1...',
-  '..1111111111111111111...',
-  '..1111111111111111111...',
-  '..111111111111111111....',
-  '..111111111111111111....',
-  '..111111111111111111....',
-  '...1111111111111111.....',
-  '...1111111111111111.....',
-  '...1111111111111111.....',
-  '....11111111111111......',
-  '....11111111111111......',
-  '....11111111111111......',
-  '.....1111....1111.......',
-  '.....1111....1111.......',
-  '.....1111....1111.......',
-  '.....1111....1111.......',
-  '....11111....11111......',
-  '....11111....11111......',
-  '........................',
+
+const COUNT_FACE = [
+  '..111111..',
+  '.11111111.',
+  '1111111111',
+  '1133113311',
+  '1333113331',
+  '1311331131',
+  '1323333231',
+  '1333333331',
+  '.13111131.',
+  '.13311331.',
+  '..133331..',
+  '...1111...',
 ];
-const VAMP_CAPE = [
-  '........11111111........',
-  '.......1111111111.......',
-  '.......1133333311.......',
-  '.......1333333331.......',
-  '.......1313333131.......',
-  '.......1333333331.......',
-  '.......1331331331.......',
-  '........13333331........',
-  '11111111133331111111111.',
-  '12222211111111111222221.',
-  '12222221112211122222221.',
-  '122222221121211222222221',
-  '122222221122211222222221',
-  '122222221111111222222221',
-  '122222221111111222222221',
-  '122222211111111122222221',
-  '122222211111111122222221',
-  '122222111111111112222221',
-  '12222211111111111222221.',
-  '12222111111111111122221.',
-  '1222111111111111111221..',
-  '122111111111111111112...',
-  '.1111111111111111111....',
-  '....11111111111111......',
-  '....11111111111111......',
-  '.....1111....1111.......',
-  '.....1111....1111.......',
-  '.....1111....1111.......',
-  '.....1111....1111.......',
-  '....11111....11111......',
-  '....11111....11111......',
-  '........................',
-];
-const VAMP_STUN = VAMP_IDLE.map((r, i) => (i === 4 ? '.......1131331311.......' : i === 6 ? '.......1333333331.......' : r));
+const COUNT_FACE_STUN = COUNT_FACE.map((r, i) => (i === 6 ? '1313333131' : i === 8 ? '.13311331.' : i === 9 ? '.13111131.' : r));
+
+function count(pose: 'idle' | 'breathe' | 'cape' | 'stun'): Sprite {
+  const p = new PixelArt(24, 32);
+  const lift = pose === 'breathe' ? 1 : 0;
+  if (pose === 'cape') {
+    // wings of the cape spread wide, red lining facing us, scalloped hem
+    for (const side of [-1, 1]) {
+      const sx = side < 0 ? 9 : 14;
+      const ex = side < 0 ? 0 : 23;
+      p.tri(sx, 11, ex, 9, ex, 27, 2);
+      p.tri(sx, 11, ex, 27, sx, 29, 2);
+      for (let k = 0; k < 4; k++) {
+        const hx = side < 0 ? 1 + k * 2 : 22 - k * 2;
+        p.circle(hx, 27 + (k % 2), 1.2, 0);
+      }
+      for (const ty of [14, 19, 24]) p.line(sx, 11, ex, ty, 1);
+      p.line(sx, 11, ex, 9, 1);
+    }
+  } else {
+    // closed cape: black with a red rim (the lining catches the light)
+    p.tri(12, 9, 1, 31, 23, 31, 1);
+    p.rect(4, 12, 16, 20, 1);
+    p.ellipse(12, 14, 9, 4, 1);
+    for (let x = 1; x < 23; x += 3) p.set(x, 31, 0);
+    rim(p, 1, 2);
+  }
+  // high collar
+  for (const side of [-1, 1]) {
+    for (let y = 1; y < 11; y++) {
+      const w = Math.floor((11 - y) / 3) + 1;
+      for (let k = 0; k < w; k++) {
+        const x = side < 0 ? 5 - k - Math.floor(y / 4) + 1 : 18 + k + Math.floor(y / 4) - 1;
+        p.set(x, y + 1, 2);
+      }
+    }
+    p.line(side < 0 ? 5 : 18, 3, side < 0 ? 6 : 17, 11, 1);
+  }
+  // suit front, shirt and medallion
+  p.rect(9, 12, 6, 17, 1);
+  p.rect(10, 12, 4, 5, 3);
+  p.rect(11, 15, 2, 2, 2);
+  p.vline(9, 12, 16, 2).vline(14, 12, 16, 2);
+  p.rect(10, 26, 1, 5, 1).rect(13, 26, 1, 5, 1);
+  // pale clawed hands at the opening
+  if (pose !== 'cape') p.rect(8, 21, 1, 2, 3).rect(15, 21, 1, 2, 3);
+  else p.rect(1, 10, 2, 1, 3).rect(21, 10, 2, 1, 3);
+  // head
+  p.stamp(pose === 'stun' ? COUNT_FACE_STUN : COUNT_FACE, 7, 0 + lift);
+  return sp(p, `vamp_${pose}`);
+}
 export const VAMPIRE: Record<string, AnimDef> = {
-  idle: anim([S('vamp_idle0', VAMP_IDLE), S('vamp_idle1', VAMP_IDLE.map((r) => r))], 2),
-  cape: anim([S('vamp_cape', VAMP_CAPE)], 1),
-  stun: anim([S('vamp_stun', VAMP_STUN)], 1),
+  idle: anim([count('idle'), count('breathe')], 2),
+  cape: anim([count('cape')], 1),
+  stun: anim([count('stun')], 1),
 };
 
-export const GIANT_PAL = pal('black', 'olive', 'lime');
-function giant(arms: 'down' | 'up' | 'throw'): string[] {
-  const rows = [
-    '..........111111111111..........',
-    '..........122222222221..........',
-    '..........123232322221..........',
-    '..........122222222221..........',
-    '..........121222222121..........',
-    '..........122222222221..........',
-    '..........122111111221..........',
-    '..........122222222221..........',
-    '...........1222222221...........',
-    '......111111122222221111111.....',
-    '.....11111111111111111111111....',
-  ];
-  const torso = [
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-  ];
-  const armsDown = [
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-  ];
-  const armsUp = [
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '.1221111111111111111111111221...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-  ];
-  const armsThrow = [
-    '....111111111111111111111111221.',
-    '....111111111111111111111111221.',
-    '....111111111111111111111111221.',
-    '....1111111111111111111111111...',
-    '.1221111111111111111111111111...',
-    '.1221111111111111111111111111...',
-    '.1221111111111111111111111111...',
-    '.1221111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-    '....1111111111111111111111111...',
-  ];
-  const legs = [
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '.....11111111.....11111111......',
-    '....1111111111...1111111111.....',
-    '....1111111111...1111111111.....',
-    '................................',
-  ];
-  const armRows = arms === 'down' ? armsDown : arms === 'up' ? armsUp : armsThrow;
-  const r = [...rows];
-  // overlay arms on torso rows where arms have '2'
-  for (let i = 0; i < torso.length; i++) {
-    let line = '';
-    for (let x = 0; x < 32; x++) line += armRows[i][x] !== '.' ? armRows[i][x] : torso[i][x];
-    r.push(line);
-  }
-  const extraTop = arms === 'up' ? ['.1221....................1221...', '.1221....................1221...', '.1221....................1221...', '.1221....................1221...'] : ['................................', '................................', '................................', '................................'];
-  return [...extraTop, ...r, ...legs];
+/* ================================================================== */
+/* Night 2: the Stitched Giant (32×52)                                  */
+/* ================================================================== */
+
+export const GIANT_PAL = pal('black', 'darkGrey', 'lime');
+
+const GIANT_HEAD = [
+  '..1111111111..',
+  '.111111111111.',
+  '.111111111111.',
+  '.131313131311.',
+  '.333333333331.',
+  '.313131313131.',
+  '.333333333331.',
+  '.311131111131.',
+  '.313131313131.',
+  '.333331133331.',
+  '.333331133331.',
+  '.333333333331.',
+  '.311111111131.',
+  '.331313131331.',
+  '..3333333331..',
+  '...11111111...',
+];
+
+function giant(pose: 'idle' | 'stepA' | 'stepB' | 'throw' | 'burn'): Sprite {
+  const p = new PixelArt(32, 52);
+  // legs + boots
+  const legShift = pose === 'stepA' ? 2 : pose === 'stepB' ? -2 : 0;
+  p.rect(8 + legShift, 38, 7, 9, 1).rect(17 - legShift, 38, 7, 9, 1);
+  p.vline(9 + legShift, 38, 9, 2).vline(18 - legShift, 38, 9, 2);
+  p.rect(6 + legShift, 46, 10, 6, 1).rect(16 - legShift, 46, 10, 6, 1);
+  p.hline(6 + legShift, 46, 10, 2).hline(16 - legShift, 46, 10, 2);
+  p.hline(6 + legShift, 51, 10, 2).hline(16 - legShift, 51, 10, 2);
+  // coat body
+  p.rect(6, 19, 20, 20, 2);
+  p.ellipse(16, 20, 13, 3, 2);
+  p.rect(6, 36, 20, 3, 2);
+  // lapels open over a dark shirt, buttons, a stitched patch
+  p.tri(12, 19, 20, 19, 16, 29, 1);
+  p.vline(16, 30, 8, 1);
+  p.set(17, 31, 3).set(17, 35, 3);
+  p.rect(20, 30, 4, 4, 1).set(21, 31, 2).set(22, 32, 2);
+  // arms
+  const arm = (side: number, raised: boolean) => {
+    const x = side < 0 ? 2 : 26;
+    if (raised) {
+      p.rect(x, 4, 4, 18, 2);
+      p.rect(x - 1, 0, 6, 5, 3);
+      p.vline(x, 4, 18, 1);
+      for (let fx = x; fx < x + 5; fx += 2) p.set(fx, 4, 1);
+    } else {
+      p.rect(x, 19, 4, 17, 2);
+      p.vline(side < 0 ? x : x + 3, 19, 17, 1);
+      p.hline(x, 27, 4, 1);
+      p.rect(x - 1, 35, 6, 5, 3);
+      for (let fx = x; fx < x + 5; fx += 2) p.set(fx, 39, 1);
+      p.hline(x - 1, 36, 6, 1); // wrist stitches
+    }
+  };
+  arm(-1, pose === 'burn');
+  arm(1, pose === 'throw' || pose === 'burn');
+  rim(p, 2, 1);
+  // head and neck bolts
+  p.rect(13, 16, 6, 4, 3).vline(18, 16, 4, 1);
+  p.stamp(GIANT_HEAD, 9, 1);
+  p.rect(7, 13, 2, 3, 2).rect(23, 13, 2, 3, 2).set(7, 13, 1).set(24, 15, 1);
+  if (pose === 'burn') p.stamp(['31113', '13331'], 13, 13); // mouth agape
+  return sp(p, `giant_${pose}`);
 }
 export const GIANT: Record<string, AnimDef> = {
-  idle: anim([S('giant_idle', giant('down'))], 1),
-  walk: anim([S('giant_walk0', giant('down')), S('giant_walk1', giant('up'))], 3),
-  throw: anim([S('giant_throw', giant('throw'))], 1),
-  burn: anim([S('giant_burn0', giant('up')), S('giant_burn1', giant('down'))], 8),
+  idle: anim([giant('idle')], 1),
+  walk: anim([giant('stepA'), giant('idle'), giant('stepB'), giant('idle')], 4),
+  throw: anim([giant('throw')], 1),
+  burn: anim([giant('burn'), giant('idle')], 8),
 };
+
+/* ================================================================== */
+/* Night 3: the Wolfman (32×32)                                         */
+/* ================================================================== */
 
 export const WOLF_PAL = pal('black', 'brown', 'tan');
-const WOLF_IDLE = [
-  '....11.......11.................',
-  '...1221.....1221................',
-  '...12221...12221................',
-  '...1222211112221................',
-  '...1222222222221................',
-  '...1223322233221................',
-  '...1222222222221................',
-  '....12222222221.................',
-  '....11122222211111..............',
-  '...1222222222222222111..........',
-  '..122222222222222222221.........',
-  '.12222222222222222222221........',
-  '.12222222222222222222221........',
-  '.12222222222222222222221........',
-  '.12222222222222222222221........',
-  '..122222222222222222221.........',
-  '...1222222222222222221..........',
-  '...1222211111111222221..........',
-  '...122211......122221...........',
-  '...12221.......12221............',
-  '...12221.......12221............',
-  '...12221.......12221............',
-  '...12221.......12221............',
-  '..122221......122221............',
-  '..11111.......11111.............',
-  '................................',
-];
-const WOLF_LUNGE = [
-  '......11.......11...............',
-  '.....1221.....1221..............',
-  '.....12221...12221..............',
-  '.....1222211112221..............',
-  '.....12222222222211.............',
-  '.....12233222332221.............',
-  '.....12222222222221.............',
-  '......122222222211..............',
-  '.......1111111111111111.........',
-  '......12222222222222222111......',
-  '.....1222222222222222222221.....',
-  '....12222222222222222222222111..',
-  '...122222222222222222222222222..',
-  '..1222222222222222222222222221..',
-  '..1222222222222222222222222221..',
-  '...12222222222222222222222221...',
-  '.....1222222222222222222221.....',
-  '.......111222222222222111.......',
-  '.........12221......12221.......',
-  '........12221......12221........',
-  '.......12221......12221.........',
-  '......12221......12221..........',
-  '.....11111......11111...........',
-  '................................',
-  '................................',
-  '................................',
-];
-const WOLF_HOWL = [
-  '........................11......',
-  '......11.......11......1221.....',
-  '.....1221.....1221....12221.....',
-  '.....12221...12221...122221.....',
-  '.....1222211112221..1222221.....',
-  '.....12222222222221122222221....',
-  '.....12232222322222222222221....',
-  '.....12222222222222221111111....',
-  '.....1222222222222221...........',
-  '......11122222222221............',
-  '....1222222222222211............',
-  '...12222222222222221............',
-  '..1222222222222222221...........',
-  '.12222222222222222221...........',
-  '.12222222222222222221...........',
-  '.12222222222222222221...........',
-  '..122222222222222221............',
-  '...1222222222222221.............',
-  '...1222211111112221.............',
-  '...12221......12221.............',
-  '...12221......12221.............',
-  '...12221......12221.............',
-  '...12221......12221.............',
-  '..122221.....122221.............',
-  '..11111......11111..............',
-  '................................',
-];
+
+function wolf(pose: 'idle' | 'breathe' | 'lunge' | 'howl' | 'stun'): Sprite {
+  const p = new PixelArt(32, 32);
+  if (pose === 'lunge') {
+    // stretched out, claws first
+    p.ellipse(17, 16, 11, 5, 2);
+    p.ellipse(25, 13, 6, 5, 2);
+    p.ellipse(8, 12, 5, 4, 2); // head
+    p.tri(0, 13, 6, 10, 6, 16, 2); // snout
+    p.tri(8, 8, 9, 3, 11, 9, 2); // ear
+    p.line(10, 18, 1, 22, 2).line(11, 19, 2, 23, 2); // front arm
+    p.line(23, 19, 30, 26, 2).line(24, 20, 31, 27, 2); // back leg
+    p.line(18, 20, 14, 27, 2).line(19, 20, 15, 27, 2);
+    rim(p, 2, 1);
+    p.ellipse(15, 18, 6, 2, 3); // chest fur
+    p.set(0, 21, 3).set(1, 23, 3).set(3, 24, 3); // claws
+    p.set(6, 11, 3).set(6, 10, 1); // eye
+    p.hline(1, 15, 4, 1).set(2, 15, 3).set(4, 15, 3); // jaws
+    for (let x = 14; x < 28; x += 3) p.set(x, 11, 1);
+    return sp(p, 'wolf_lunge');
+  }
+  const bob = pose === 'breathe' ? 1 : 0;
+  // legs (digitigrade)
+  p.rect(13, 22, 5, 5, 2).rect(20, 22, 5, 5, 2);
+  p.line(15, 27, 12, 30, 2).line(16, 27, 13, 30, 2);
+  p.line(22, 27, 22, 30, 2).line(23, 27, 23, 30, 2);
+  p.rect(9, 30, 6, 2, 2).rect(20, 30, 6, 2, 2);
+  // hunched torso and shaggy back
+  p.ellipse(18, 16 + bob, 8, 8, 2);
+  p.ellipse(21, 12 + bob, 6, 6, 2);
+  for (let x = 16; x < 28; x += 2) p.set(x, 5 + bob + ((x / 2) % 2), 2);
+  // tail
+  p.ellipse(28, 20, 3, 2, 2);
+  p.set(31, 19, 2);
+  // head (raised for the howl)
+  if (pose === 'howl') {
+    p.ellipse(11, 7, 5, 4, 2);
+    p.tri(4, 0, 8, 6, 12, 3, 2); // snout pointing up-left
+    p.tri(13, 1, 14, -3, 16, 4, 2);
+  } else {
+    p.ellipse(10, 9 + bob, 5, 4, 2);
+    p.tri(1, 10 + bob, 7, 7 + bob, 7, 13 + bob, 2);
+    p.tri(10, 5 + bob, 11, 0 + bob, 13, 6 + bob, 2);
+    p.tri(13, 5 + bob, 15, 1 + bob, 15, 7 + bob, 2);
+  }
+  // long front arm with claws
+  p.line(12, 14 + bob, 8, 23, 2).line(13, 15 + bob, 9, 24, 2).line(14, 15 + bob, 10, 24, 2);
+  rim(p, 2, 1);
+  // shaggy tan chest fur: a jagged V of tufts
+  for (let y = 12; y < 22; y++) {
+    const half = Math.max(0, 3 - Math.floor((y - 12) / 3));
+    for (let x = 15 - half; x <= 15 + half; x++) if (p.get(x, y + bob) === 2) p.set(x, y + bob, 3);
+    if (y % 2 === 0 && p.get(15 - half - 1, y + bob) === 2) p.set(15 - half - 1, y + bob, 3);
+  }
+  for (let y = 13; y < 21; y += 3) p.set(15, y + bob, 2);
+  p.set(7, 25, 3).set(9, 25, 3).set(11, 25, 3);
+  p.set(9, 31, 3).set(11, 31, 3).set(25, 31, 3);
+  if (pose === 'howl') {
+    p.set(10, 5, 3).set(10, 4, 1); // eye shut tight
+    p.line(5, 2, 8, 6, 1);
+    p.set(6, 2, 3).set(7, 4, 3); // teeth
+  } else {
+    p.set(9, 8 + bob, pose === 'stun' ? 1 : 3).set(8, 8 + bob, 1);
+    if (pose === 'stun') p.set(8, 7 + bob, 1).set(10, 9 + bob, 1);
+    p.hline(2, 11 + bob, 5, 1);
+    p.set(3, 12 + bob, 3).set(5, 12 + bob, 3);
+    p.set(1, 9 + bob, 1); // nose
+    if (pose === 'stun') p.rect(3, 12 + bob, 2, 2, 2); // tongue lolling
+  }
+  return sp(p, `wolf_${pose}`);
+}
 export const WOLFMAN: Record<string, AnimDef> = {
-  idle: anim([S('wolf_idle0', WOLF_IDLE), S('wolf_idle1', WOLF_IDLE.map((r, i) => (i > 8 && i < 24 ? r : r)))], 2),
-  lunge: anim([S('wolf_lunge', WOLF_LUNGE)], 1),
-  howl: anim([S('wolf_howl', WOLF_HOWL)], 1),
-  stun: anim([S('wolf_stun', WOLF_IDLE.map((r, i) => (i === 5 ? '...1231122231221................' : r)))], 1),
+  idle: anim([wolf('idle'), wolf('breathe')], 2),
+  lunge: anim([wolf('lunge')], 1),
+  howl: anim([wolf('howl')], 1),
+  stun: anim([wolf('stun')], 1),
 };
+
+/* ================================================================== */
+/* Night 4: the Mummy (24×32)                                           */
+/* ================================================================== */
 
 export const MUMMY_PAL = pal('black', 'tan', 'cream');
-const MUMMY_IDLE = [
-  '........1111111.........',
-  '.......133333331........',
-  '.......122222221........',
-  '.......133313331........',
-  '.......122222221........',
-  '.......133333331........',
-  '........1222221.........',
-  '......111333333111......',
-  '.....13333222233331.....',
-  '.....12222333322221.....',
-  '.....13333222233331.....',
-  '.....12222333322221.....',
-  '.....13333222233331.....',
-  '.....12222333322221.....',
-  '.....13333222233331.....',
-  '.....12222333322221.....',
-  '.....13333222233331.....',
-  '......1222233322221.....',
-  '......1333111133331.....',
-  '......1222.....2221.....',
-  '......1333.....3331.....',
-  '......1222.....2221.....',
-  '......1333.....3331.....',
-  '......1222.....2221.....',
-  '......1333.....3331.....',
-  '......1222.....2221.....',
-  '......1333.....3331.....',
-  '......1222.....2221.....',
-  '.....13333.....33331....',
-  '.....11111.....11111....',
-  '........................',
-  '........................',
-];
-const MUMMY_GRAPPLE = MUMMY_IDLE.map((r, i) => (i >= 8 && i <= 12 ? r.slice(0, 18) + '333333' : r));
+
+/** Wrap a shape in diagonal bandages: cream body, tan wrap lines. */
+function bandage(p: PixelArt, slope: number, gap = 3): void {
+  for (let y = 0; y < p.h; y++)
+    for (let x = 0; x < p.w; x++) {
+      if (p.get(x, y) !== 3) continue;
+      if ((((y + Math.floor(x * slope)) % gap) + gap) % gap === 0) p.set(x, y, 2);
+    }
+}
+
+function mummy(pose: 'idle' | 'shuffle' | 'grapple' | 'wet'): Sprite {
+  const p = new PixelArt(24, 32);
+  const step = pose === 'shuffle' ? 1 : 0;
+  // legs
+  p.rect(8 - step, 22, 4, 9, 3).rect(13 + step, 22, 4, 9, 3);
+  p.rect(7 - step, 30, 5, 2, 3).rect(13 + step, 30, 5, 2, 3);
+  // torso
+  p.rect(7, 11, 10, 12, 3);
+  // head
+  p.ellipse(12, 6, 4.5, 5, 3);
+  // arms reaching forward (to the left)
+  const reach = pose === 'grapple' ? 0 : 2;
+  p.rect(reach, 12, 9 - reach, 3, 3);
+  p.rect(reach + 1, 16, 8 - reach, 3, 3);
+  // trailing loose bandage
+  for (let y = 14; y < 27; y++) p.set(18 + Math.round(Math.sin(y / 2) * 1.5), y, 3).set(19 + Math.round(Math.sin(y / 2) * 1.5), y, 3);
+  bandage(p, 0.5);
+  rim(p, 3, 1);
+  rim(p, 2, 1);
+  // dark eye slit with glowing eyes
+  p.rect(9, 5, 7, 2, 1);
+  p.set(10, 5, 3).set(14, 5, 3);
+  // dangling strips from the arms
+  p.vline(reach + 1, 15, 3, 2).vline(reach + 3, 19, 4, 2);
+  // fingers
+  p.set(reach, 12, 3).set(reach, 14, 3).set(reach + 1, 16, 3).set(reach + 1, 18, 3);
+  if (pose === 'wet') {
+    // soggy: everything a shade darker and drooping
+    p.swap(2, 1);
+    p.swap(3, 2);
+    p.set(10, 5, 3).set(14, 5, 3);
+    for (let x = 6; x < 18; x += 3) p.set(x, 23, 2).set(x, 24, 2);
+  }
+  return sp(p, `mummy_${pose}`);
+}
 export const MUMMY: Record<string, AnimDef> = {
-  idle: anim([S('mummy_idle0', MUMMY_IDLE), S('mummy_idle1', MUMMY_IDLE)], 2),
-  grapple: anim([S('mummy_grapple', MUMMY_GRAPPLE)], 1),
-  wet: anim([S('mummy_wet', MUMMY_IDLE.map((r) => r.replace(/3/g, '2')))], 1),
+  idle: anim([mummy('idle'), mummy('shuffle')], 2),
+  grapple: anim([mummy('grapple')], 1),
+  wet: anim([mummy('wet')], 1),
 };
 
+/* ================================================================== */
+/* Night 5: the Gill Creature (32×32)                                   */
+/* ================================================================== */
+
 export const GILL_PAL = pal('black', 'teal', 'cyan');
-const GILL_IDLE = [
-  '..........1111111...............',
-  '.........122222221..............',
-  '........12222222221.............',
-  '........12322222321.............',
-  '........12222222221.............',
-  '.......1122211122211.............',
-  '.......1222222222221............',
-  '........1222222222211...........',
-  '.....1111222222222211...........',
-  '....12221222222222211...........',
-  '...1222212222222222211..........',
-  '...1222212222222222221..........',
-  '...1222112222222222221..........',
-  '....1111.12222222222111.........',
-  '.........1222222222221..........',
-  '.........1222222222221..........',
-  '.........1222222222221..........',
-  '.........12222222222211.........',
-  '........11222222222221..........',
-  '.......12221222222221...........',
-  '......1222212222222221..........',
-  '......1222212222222221..........',
-  '.......1111.12222222221.........',
-  '............1222.12221..........',
-  '............1222.12221..........',
-  '...........12221.12221..........',
-  '...........1221..1221...........',
-  '..........11111.11111...........',
-  '................................',
-  '................................',
-  '................................',
-  '................................',
-];
-const GILL_ATTACK = GILL_IDLE.map((r, i) => (i >= 9 && i <= 12 ? r.replace('.....', '.....') : r));
+
+function gill(pose: 'idle' | 'sway' | 'attack' | 'gasp'): Sprite {
+  const p = new PixelArt(32, 32);
+  const sway = pose === 'sway' ? 1 : 0;
+  // legs with fin flaps and webbed feet
+  p.rect(11, 23, 4, 7, 2).rect(17, 23, 4, 7, 2);
+  p.rect(9, 30, 7, 2, 2).rect(17, 30, 7, 2, 2);
+  p.tri(15, 24, 17, 24, 15, 28, 2);
+  // body
+  p.ellipse(16, 17, 7, 8, 2);
+  // spine fins down the back
+  for (let y = 6; y < 20; y += 5) p.tri(21, y, 27, y + 2, 21, y + 5, 2);
+  // head with crest
+  p.ellipse(13, 7, 6, 5, 2);
+  p.tri(8, 3, 12, -2, 16, 3, 2);
+  p.tri(14, 2, 19, -1, 19, 5, 2);
+  p.ellipse(8, 10, 3, 2, 2); // lips/jaw
+  // arms
+  if (pose === 'attack') {
+    p.line(10, 13, 4, 2, 2).line(11, 13, 5, 2, 2).line(12, 14, 6, 3, 2);
+    p.line(19, 13, 22, 2, 2).line(20, 13, 23, 2, 2);
+  } else {
+    p.line(10, 13, 5 - sway, 21, 2).line(11, 13, 6 - sway, 22, 2).line(12, 14, 7 - sway, 22, 2);
+    p.tri(6, 16, 4, 19, 8, 18, 2); // forearm fin
+  }
+  rim(p, 2, 1);
+  // pale segmented belly plates
+  for (let y = 12; y < 24; y++) for (let x = 13; x < 19; x++) if (p.get(x, y) === 2) p.set(x, y, y % 3 === 0 ? 1 : 3);
+  // scales: sparse highlights in a diamond grid
+  for (let y = 5; y < 24; y += 3) for (let x = 7 + (y % 2 ? 2 : 0); x < 26; x += 4) if (p.get(x, y) === 2 && p.get(x, y - 1) === 2) p.set(x, y, 3);
+  // fin rays
+  for (let y = 7; y < 20; y += 5) p.line(22, y + 1, 25, y + 2, 1);
+  // crest rays
+  p.line(12, 0, 12, 3, 3).line(17, 1, 17, 4, 3);
+  // eye, gills, mouth
+  const eyeBig = pose === 'gasp';
+  p.circle(10, 6, eyeBig ? 2 : 1.5, 3);
+  p.set(9, 6, 1);
+  for (const gx of [15, 17]) p.vline(gx, 8, 3, 1);
+  if (pose === 'gasp' || pose === 'attack') {
+    p.ellipse(7, 11, 2.2, 2, 1);
+    p.set(6, 10, 3).set(8, 10, 3);
+  } else {
+    p.hline(5, 10, 5, 1);
+    p.set(6, 11, 3);
+  }
+  // webbed claws
+  if (pose === 'attack') p.set(3, 1, 3).set(5, 0, 3).set(22, 0, 3).set(24, 1, 3);
+  else p.set(4 - sway, 22, 3).set(6 - sway, 23, 3).set(8 - sway, 23, 3);
+  return sp(p, `gill_${pose}`);
+}
 export const GILL: Record<string, AnimDef> = {
-  idle: anim([S('gill_idle0', GILL_IDLE), S('gill_idle1', GILL_IDLE.map((r, i) => (i === 3 ? '........12222222221.............' : r)))], 2),
-  attack: anim([S('gill_attack', GILL_ATTACK)], 1),
-  gasp: anim([S('gill_gasp', GILL_IDLE.map((r, i) => (i === 5 ? '.......1133311133311............' : r)))], 1),
+  idle: anim([gill('idle'), gill('sway')], 2),
+  attack: anim([gill('attack')], 1),
+  gasp: anim([gill('gasp')], 1),
 };
+
+/* ================================================================== */
+/* Tables                                                               */
+/* ================================================================== */
 
 export const BOSS_PALETTES: Record<string, SpritePalette> = {
   vampire: VAMPIRE_PAL,
@@ -418,9 +489,9 @@ export const BOSS_ANIMS: Record<string, Record<string, AnimDef>> = { vampire: VA
 
 /** Manual hint art lookup. */
 export const CREATURE_ART: Record<string, { sprite: Sprite; pal: SpritePalette }> = {
-  vampire: { sprite: VAMPIRE.idle.frames[0], pal: VAMPIRE_PAL },
+  vampire: { sprite: VAMPIRE.cape.frames[0], pal: VAMPIRE_PAL },
   giant: { sprite: GIANT.idle.frames[0], pal: GIANT_PAL },
-  wolfman: { sprite: WOLFMAN.idle.frames[0], pal: WOLF_PAL },
+  wolfman: { sprite: WOLFMAN.howl.frames[0], pal: WOLF_PAL },
   mummy: { sprite: MUMMY.idle.frames[0], pal: MUMMY_PAL },
   gill: { sprite: GILL.idle.frames[0], pal: GILL_PAL },
   bat: { sprite: BAT.frames[0], pal: BAT_PAL },
@@ -430,7 +501,17 @@ export const CREATURE_ART: Record<string, { sprite: Sprite; pal: SpritePalette }
 };
 
 export function allMonsterSprites(): Sprite[] {
-  const out: Sprite[] = [...BAT.frames, ...RAT.frames, ...HAND.frames, ...FROG.frames];
-  for (const b of Object.values(BOSS_ANIMS)) for (const a of Object.values(b)) out.push(...a.frames);
+  const seen = new Set<string>();
+  const out: Sprite[] = [];
+  const add = (s: Sprite) => {
+    if (!seen.has(s.name)) {
+      seen.add(s.name);
+      out.push(s);
+    }
+  };
+  for (const a of [BAT, RAT, HAND, FROG]) a.frames.forEach(add);
+  for (const b of Object.values(BOSS_ANIMS)) for (const a of Object.values(b)) a.frames.forEach(add);
   return out;
 }
+
+void mirrorX;

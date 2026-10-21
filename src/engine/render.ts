@@ -2,6 +2,7 @@ import { SCREEN_H, SCREEN_W } from './constants';
 import { glyph, FONT_W } from './font';
 import type { Sprite } from './sprites';
 import { Atlas } from './sprites';
+import { Fader } from './fade';
 import type { SpritePalette } from '../game/palette';
 
 /**
@@ -25,6 +26,8 @@ export class Renderer {
   crt = false;
   private crtInitFailed = false;
   scale = 1;
+  /** NES-style fade-in after scene changes and respawns. */
+  readonly fader = new Fader();
   private fontCache = new Map<string, HTMLCanvasElement>();
   private time = 0;
 
@@ -60,6 +63,12 @@ export class Renderer {
   /** Present the buffer to the display canvas. */
   present(dt: number): void {
     this.time += dt;
+    if (this.fader.level > 0) {
+      const img = this.ctx.getImageData(0, 0, SCREEN_W, SCREEN_H);
+      this.fader.apply(img.data);
+      this.ctx.putImageData(img, 0, 0);
+    }
+    this.fader.tick(dt);
     if (this.crt && !this.crtInitFailed) {
       if (!this.gl) this.initGL();
       if (this.gl) {
@@ -180,6 +189,12 @@ export class Renderer {
     this.ctx.drawImage(this.atlas.get(s, pal, flip), Math.round(x), Math.round(y));
   }
 
+  /** Pixel-doubled (or tripled) sprite, still crisp. */
+  spriteScaled(s: Sprite, pal: SpritePalette, x: number, y: number, scale: number, flip = false): void {
+    const c = this.atlas.get(s, pal, flip);
+    this.ctx.drawImage(c, Math.round(x), Math.round(y), s.w * scale, s.h * scale);
+  }
+
   /** Draw text with the bitmap font. Colour is any CSS colour. */
   text(str: string, x: number, y: number, colour = '#fcfcfc'): void {
     let cx = Math.round(x);
@@ -188,6 +203,86 @@ export class Renderer {
       if (ch !== ' ') this.ctx.drawImage(this.glyphCanvas(ch, colour), cx, cy);
       cx += FONT_W;
     }
+  }
+
+  private ditherPatterns = new Map<string, CanvasPattern>();
+  /**
+   * 50% checkerboard fill: the NES way to fake transparency (screen flashes,
+   * shadows, fog) without alpha blending.
+   */
+  dither(x: number, y: number, w: number, h: number, colour: string, phase = 0): void {
+    const key = colour + phase;
+    let pat = this.ditherPatterns.get(key);
+    if (!pat) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 2;
+      const g = c.getContext('2d')!;
+      g.fillStyle = colour;
+      g.fillRect(phase, 0, 1, 1);
+      g.fillRect(1 - phase, 1, 1, 1);
+      pat = this.ctx.createPattern(c, 'repeat')!;
+      this.ditherPatterns.set(key, pat);
+    }
+    this.ctx.fillStyle = pat;
+    this.ctx.fillRect(Math.round(x), Math.round(y), w, h);
+  }
+
+  /**
+   * NES-style dialog box: solid fill, a light border inset by one pixel and
+   * notched corners.
+   */
+  box(x: number, y: number, w: number, h: number, fill = '#000000', border = '#fcfcfc', shade = '#7c7c7c'): void {
+    x = Math.round(x);
+    y = Math.round(y);
+    this.rect(x, y, w, h, '#000000');
+    this.rect(x + 1, y + 1, w - 2, h - 2, fill);
+    this.rect(x + 2, y + 1, w - 4, 1, border);
+    this.rect(x + 2, y + h - 2, w - 4, 1, shade);
+    this.rect(x + 1, y + 2, 1, h - 4, border);
+    this.rect(x + w - 2, y + 2, 1, h - 4, shade);
+    this.rect(x + 3, y + 3, w - 6, 1, shade);
+    this.rect(x + 3, y + 3, 1, h - 6, shade);
+  }
+
+  private bigCache = new Map<string, HTMLCanvasElement>();
+  /**
+   * Chunky 2× title text: each font pixel becomes 2×2, the top rows in `top`,
+   * the lower rows in `bottom`, with a 1px black outline. Cached per string.
+   */
+  bigText(str: string, x: number, y: number, top: string, bottom: string, scale = 2): void {
+    const key = `${str}|${top}|${bottom}|${scale}`;
+    let c = this.bigCache.get(key);
+    if (!c) {
+      c = document.createElement('canvas');
+      c.width = str.length * FONT_W * scale + 2;
+      c.height = 8 * scale + 2;
+      const g = c.getContext('2d')!;
+      const cells: [number, number, number][] = [];
+      [...str].forEach((ch, i) => {
+        const rows = glyph(ch);
+        if (ch === ' ') return;
+        for (let gy = 0; gy < rows.length; gy++)
+          for (let gx = 0; gx < rows[gy].length; gx++) if (rows[gy][gx] === '#') cells.push([1 + (i * FONT_W + gx) * scale, 1 + gy * scale, gy]);
+      });
+      g.fillStyle = '#000000';
+      for (const [cx, cy] of cells) g.fillRect(cx - 1, cy - 1, scale + 2, scale + 2);
+      for (const [cx, cy, gy] of cells) {
+        g.fillStyle = gy < 4 ? top : bottom;
+        g.fillRect(cx, cy, scale, scale);
+      }
+      this.bigCache.set(key, c);
+    }
+    this.ctx.drawImage(c, Math.round(x), Math.round(y));
+  }
+
+  bigTextWidth(str: string, scale = 2): number {
+    return str.length * FONT_W * scale + 2;
+  }
+
+  /** Text with a 1px black drop shadow, readable over busy tiles. */
+  textShadow(str: string, x: number, y: number, colour = '#fcfcfc', shadow = '#000000'): void {
+    this.text(str, x + 1, y + 1, shadow);
+    this.text(str, x, y, colour);
   }
 
   textCentered(str: string, y: number, colour = '#fcfcfc', cx = SCREEN_W / 2): void {

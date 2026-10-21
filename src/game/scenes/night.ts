@@ -18,7 +18,10 @@ import { spawnObject, Sluice, Portal, Seal, Lamp, Exit } from '../objects';
 import { spawnEnemy, Bat } from '../enemies/fodder';
 import { spawnBoss } from '../bosses';
 import type { Boss } from '../bosses/base';
-import { tileSprite, THEMES, type Theme } from '../art/tiles';
+import { tileSprite, type Theme } from '../art/tiles';
+import { drawBackdrop } from '../backdrop';
+import { maskAt } from '../art/autotiles';
+import { hash2 } from '../../engine/pixelart';
 import { SONGS } from '../music';
 import { drawHud } from '../hud';
 import { PAGE_BY_ID } from '../manual';
@@ -113,6 +116,7 @@ export class NightScene implements Scene {
     this.state = 'intro';
     this.stateT = 0;
     this.drainT = -1;
+    this.game.renderer.fader.start(0.3);
     if (this.opts.demo && !this.demoSrc) this.demoSrc = this.game.input.addSource();
   }
 
@@ -350,14 +354,11 @@ export class NightScene implements Scene {
   }
 
   draw(r: Renderer, alpha: number): void {
-    const th = THEMES[this.theme];
-    r.clear(th.sky);
     const cam = this.camera.offset(alpha);
-    // backdrop bands with light parallax
-    for (const [frac, col] of th.bands) r.rect(0, Math.round(frac * SCREEN_H - cam.y * 0.2), SCREEN_W, SCREEN_H, col);
-    this.drawBackdrop(r, cam.x);
+    drawBackdrop(r, this.theme, cam.x, this.world.time);
     // tiles
-    const frame = Math.floor(this.world.time * 2);
+    const frame = Math.floor(this.world.time * 3);
+    const kindAt = (x: number, y: number) => this.map.kindAt(x, y);
     const tx0 = Math.max(0, Math.floor(cam.x / TILE));
     const ty0 = Math.max(0, Math.floor(cam.y / TILE));
     const tx1 = Math.min(this.map.width - 1, tx0 + SCREEN_W / TILE + 1);
@@ -366,7 +367,8 @@ export class NightScene implements Scene {
       for (let tx = tx0; tx <= tx1; tx++) {
         const gid = this.map.gidAt(tx, ty);
         if (!gid) continue;
-        const t = tileSprite(gid, this.theme, frame);
+        const mask = gid <= 8 || gid === 14 ? maskAt(kindAt, tx, ty, this.map.height) : 0;
+        const t = tileSprite(gid, this.theme, frame, mask, Math.floor(hash2(tx, ty) * 4));
         if (t) r.sprite(t.sprite, t.pal, tx * TILE - cam.x, ty * TILE - cam.y);
       }
     }
@@ -376,85 +378,27 @@ export class NightScene implements Scene {
     this.particles.draw((x, y, w, h, c) => r.rect(x, y, w, h, c), cam.x, cam.y);
     if (this.heatmap) this.drawHeatmap(r, cam.x, cam.y);
     // hit / swap flash
-    if (this.world.flash > 0) {
-      r.ctx.globalAlpha = 0.5;
-      r.rect(0, 0, SCREEN_W, SCREEN_H, this.world.flashColour);
-      r.ctx.globalAlpha = 1;
-    }
+    if (this.world.flash > 0) r.dither(0, 0, SCREEN_W, SCREEN_H, this.world.flashColour, this.world.flash & 1);
     drawHud(r, this.squad, this.timer, this.pagePopup, this.popupT);
     if (this.boss) this.boss.drawHud(r);
-    r.text(`LIVES ${this.lives}`, 180, 228, '#bcbcbc');
+    r.textShadow(`LIVES ${this.lives}`, 180, 228, '#fcfcfc');
     if (this.opts.demo) r.textCentered('DEMO - PRESS ANY KEY', 228, Math.floor(this.world.time * 2) % 2 ? '#fcfcfc' : '#7c7c7c');
     switch (this.state) {
       case 'intro':
-        r.rect(0, 96, SCREEN_W, 40, '#000000');
+        r.box(8, 96, SCREEN_W - 16, 40, '#000000');
         r.textCentered(this.night ? this.night.title : 'MIDNIGHT: CLOSE THE PORTAL', 108, '#f8d878');
         r.textCentered(this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', 120, '#bcbcbc');
         break;
       case 'cleared':
-        r.rect(0, 96, SCREEN_W, 32, '#000000');
+        r.box(24, 96, SCREEN_W - 48, 32, '#000000');
         r.textCentered(this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', 108, '#f8d878');
         break;
       case 'midnight':
-        r.rect(0, 96, SCREEN_W, 32, '#000000');
+        r.box(24, 96, SCREEN_W - 48, 32, '#000000');
         r.textCentered('MIDNIGHT. THE PORTAL OPENS.', 108, '#e40058');
         break;
       case 'dying':
         if (this.stateT > 0.8) r.textCentered(this.lives > 0 ? 'OUCH.' : 'THE SQUAD IS DOWN', 108, '#e40058');
-        break;
-    }
-  }
-
-  /** Dressing pass (#31, #40): a parallax backdrop per theme behind the tiles. */
-  private drawBackdrop(r: Renderer, camX: number): void {
-    const px = Math.round(camX * 0.3);
-    switch (this.theme) {
-      case 'suburb': {
-        const mx = 200 - Math.round(camX * 0.05);
-        r.rect(mx, 30, 20, 20, '#f8f8b8');
-        r.rect(mx - 2, 34, 24, 12, '#f8f8b8');
-        // houses
-        for (let i = -1; i < 6; i++) {
-          const x = ((i * 96 - px) % 576 + 576) % 576 - 96;
-          r.rect(x, 140, 64, 68, '#3c3c3c');
-          r.rect(x - 4, 128, 72, 14, '#2c1600');
-          r.rect(x + 12, 156, 12, 12, '#f8d878');
-          r.rect(x + 40, 156, 12, 12, '#f8d878');
-        }
-        break;
-      }
-      case 'graveyard': {
-        const mx = 200 - Math.round(camX * 0.05);
-        r.rect(mx, 30, 20, 20, '#f8f8b8');
-        r.rect(mx - 2, 34, 24, 12, '#f8f8b8');
-        for (let i = -1; i < 8; i++) {
-          const x = ((i * 72 - px) % 576 + 576) % 576 - 72;
-          r.rect(x + 10, 120, 6, 90, '#000000');
-          r.rect(x, 100, 26, 28, '#000000');
-          r.rect(x + 14, 112, 20, 16, '#000000');
-        }
-        break;
-      }
-      case 'mansion': {
-        // wallpaper stripes and picture rail
-        for (let x = -(px % 16); x < SCREEN_W; x += 16) r.rect(x, 16, 8, 160, '#3c1a00');
-        r.rect(0, 60, SCREEN_W, 2, '#503000');
-        r.rect(0, 176, SCREEN_W, 4, '#503000');
-        break;
-      }
-      case 'sewer': {
-        for (let x = -(px % 48); x < SCREEN_W; x += 48) {
-          r.rect(x, 16, 4, 192, '#004058');
-          r.rect(x + 20, 40, 24, 6, '#004058');
-        }
-        break;
-      }
-      case 'drain': {
-        for (let y = 24; y < 200; y += 32) r.rect(0, y, SCREEN_W, 2, '#002830');
-        for (let x = -(px % 64); x < SCREEN_W; x += 64) r.rect(x, 16, 2, 192, '#002830');
-        break;
-      }
-      default:
         break;
     }
   }

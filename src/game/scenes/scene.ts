@@ -31,6 +31,7 @@ export class Game {
   }
   push(s: Scene): void {
     this.stack.push(s);
+    if (!s.overlay) this.renderer.fader.start(0.3);
     s.enter?.();
   }
   pop(): void {
