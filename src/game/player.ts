@@ -10,7 +10,7 @@ import { TILE } from '../engine/constants';
 import { KID_SHEETS } from './art/kids';
 import { GarlicBomb, Shot } from './projectiles';
 import { TUNING as T } from './tuning';
-import type { Kid, KidId } from './squad';
+import { KIDS, type Kid, type KidId } from './squad';
 import type { Player as IPlayer, World } from './world';
 import type { Crate } from './objects';
 
@@ -136,21 +136,21 @@ export class Player implements IPlayer {
     if (this.hitStun > 0) this.hitStun -= dt;
     const stunned = this.hitStun > 0;
 
-    // --- swap (#14): not during hit-stun ---
-    if (input.pressed('swap') && !stunned) {
-      const prev = world.squad.active;
-      if (world.squad.swap(1)) {
-        if (!this.wear(world, world.squad.kid)) {
-          world.squad.swapTo(prev);
-          world.squad.swapFreeze = 0;
-          world.squad.swapFlash = 0;
-        } else {
+    // --- swap (#14): not during hit-stun; kids who wouldn't fit here are skipped ---
+    if (input.pressed('swap') && !stunned && world.squad.swapFreeze === 0) {
+      const squad = world.squad;
+      const prev = squad.active;
+      for (let i = 1; i < squad.unlocked.length; i++) {
+        const next = squad.unlocked[(squad.unlocked.indexOf(prev) + i) % squad.unlocked.length];
+        if (this.wear(world, KIDS[next])) {
+          squad.swapTo(next);
           audio.play('swap');
           world.freezeFrame(T.swapFreezeTicks, this.reducedFlash ? undefined : '#fcfcfc');
           world.particles.burst(this.centerX, this.centerY, '#fcfcfc', 6, 50);
           return;
         }
       }
+      audio.play('tick'); // nobody else fits here
     }
 
     // --- ladders (#11) ---

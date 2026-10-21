@@ -73,8 +73,8 @@ export function stepBody(b: Body, map: TileMap, dt: number): void {
       const dir = Math.sign(dx);
       if (dir > 0) b.x = Math.floor((nx + b.w) / TILE) * TILE - b.w - 0.001;
       else b.x = Math.floor(nx / TILE + 1) * TILE;
-      // still stuck (entered from inside a tile) → don't move
-      if (map.rectSolid(b.x, b.y, b.w, b.h, small)) b.x -= dx;
+      // still stuck (started inside a tile) → stay put rather than fly off
+      if (map.rectSolid(b.x, b.y, b.w, b.h, small)) b.x = b.px;
       b.vx = 0;
       b.hitWall = dir;
     } else b.x = nx;

@@ -37,3 +37,12 @@ describe('Squad roster (#13, #14)', () => {
     expect(s.damage(MAX_HP)).toBe(true);
   });
 });
+
+describe('Swap fit rule (#14)', () => {
+  it('swapTo moves directly to any unlocked kid', () => {
+    const s = new Squad();
+    expect(s.swapTo('little')).toBe(true);
+    expect(s.active).toBe('little');
+    expect(s.swapTo('little')).toBe(false);
+  });
+});

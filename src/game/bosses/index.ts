@@ -247,8 +247,9 @@ export class StitchedGiant extends Boss {
           self.anim.play('burn');
         },
         update(c, m, dt) {
-          c.walk(c.world!, dt, -c.dir * 15);
-          if (m.stateTime > 1.5) return 'walk';
+          // flails on the spot while alight, then stumbles clear
+          c.walk(c.world!, dt, m.stateTime > 1.5 ? -c.dir * 30 : 0);
+          if (m.stateTime > 2.2) return 'walk';
         },
       },
     });
@@ -303,6 +304,7 @@ export class Wolfman extends Boss {
   id = 'wolfman';
   name = 'THE WOLFMAN';
   weakness: Weakness = 'silver';
+  lunges = 0;
   constructor(x: number, y: number) {
     super(x, y - 30, 22, 28, WOLFMAN, WOLF_PAL, 32, 26);
     const self = this;
@@ -316,7 +318,10 @@ export class Wolfman extends Boss {
           const far = Math.abs(c.world!.player.centerX - c.centerX) > 70;
           c.walk(c.world!, dt, far ? c.dir * 45 : -c.dir * 30);
           if (m.stateTime > paceTime) {
-            if (howls && m.history.filter((h) => h === 'lunge').length % 2 === 1) return 'howl';
+            if (howls && c.lunges >= 2) {
+              c.lunges = 0;
+              return 'howl';
+            }
             return 'lunge';
           }
         },
@@ -324,6 +329,7 @@ export class Wolfman extends Boss {
       lunge: {
         telegraph: 0.55,
         enter() {
+          self.lunges++;
           self.anim.play('idle');
           self.facePlayer(self.world!);
         },
