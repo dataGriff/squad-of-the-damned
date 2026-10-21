@@ -18,7 +18,7 @@ const save = new SaveStore();
 const bindings: Bindings = save.data.bindings ? { ...DEFAULT_BINDINGS, ...save.data.bindings } : DEFAULT_BINDINGS;
 const input = new InputState();
 const keyboard = new KeyboardSource(input.addSource(), bindings, input);
-const gamepad = new GamepadSource(input.addSource(), bindings);
+const gamepad = new GamepadSource(input.addSource(), bindings, input);
 const touch = new TouchSource(input.addSource(), root, input);
 const game = new Game(renderer, input, save, keyboard, touch, bindings);
 game.applyOptions();

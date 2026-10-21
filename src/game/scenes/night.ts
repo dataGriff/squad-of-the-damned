@@ -234,6 +234,10 @@ export class NightScene implements Scene {
       case 'dying':
         this.world.particles.update(dt);
         if (this.stateT > 1.6) {
+          if (this.opts.demo && this.lives === 0) {
+            this.game.pop(); // attract mode never shows the game-over menu
+            return;
+          }
           if (this.lives > 0) {
             this.lives--;
             this.load();

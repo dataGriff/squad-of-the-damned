@@ -35,6 +35,7 @@ Nights are assembled from `src/game/levels/segments.ts`:
 | `VENT_PAGE` | **Pip**: only a small body passes vent tiles |
 | `CRACKED` | **Bruno**: punch through a 5-tile cracked wall |
 | `CRATE_LEDGE` | **Bruno**: push the crate to climb a 3-tile wall (Pip can double-jump it) |
+| `STEPS` | one-way platforms two tiles apart; a 1-tile pillar hop at the end |
 | `HIGH_SILVER` | bonus silver, crate or double jump |
 | `SECRET_ROOM` | hidden room above two vents, platforms up to it |
 | `GAP_SPIKES` / `GAP_WATER` | running jumps; water slows you |

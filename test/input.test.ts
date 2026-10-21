@@ -20,6 +20,18 @@ describe('Input abstraction (#6)', () => {
     s.tick();
     expect(s.released('jump')).toBe(true);
   });
+  it('only real sources count as activity (the demo autopilot does not)', () => {
+    const s = new InputState();
+    const demo = s.addSource();
+    demo.add('right');
+    s.tick();
+    expect(s.hadActivity).toBe(false);
+    s.pulse('jump');
+    s.tick();
+    expect(s.hadActivity).toBe(true);
+    s.tick();
+    expect(s.hadActivity).toBe(false);
+  });
   it('a tap between ticks still registers for one tick', () => {
     const s = new InputState();
     s.addSource();

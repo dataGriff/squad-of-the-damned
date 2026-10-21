@@ -48,6 +48,13 @@ export class InputState {
   /** Record a tap that may have started and ended between two sim ticks. */
   pulse(a: Action): void {
     this.pulses.add(a);
+    this.activity = true;
+  }
+  /** Real human activity since the last tick (scripted demo input never sets this). */
+  private activity = false;
+  hadActivity = false;
+  markActivity(): void {
+    this.activity = true;
   }
 
   /** Register a source; returns the set it should mutate. */
@@ -64,6 +71,8 @@ export class InputState {
     for (const s of this.sources) for (const a of s) this.down.add(a);
     for (const a of this.pulses) if (!this.prev.has(a)) this.down.add(a);
     this.pulses.clear();
+    this.hadActivity = this.activity;
+    this.activity = false;
   }
 
   isDown(a: Action): boolean {
@@ -124,7 +133,7 @@ export class KeyboardSource {
 /** Gamepad source: polled each tick. */
 export class GamepadSource {
   deadzone = 0.4;
-  constructor(private out: Set<Action>, public bindings: Bindings) {}
+  constructor(private out: Set<Action>, public bindings: Bindings, private state?: InputState) {}
   poll(): void {
     this.out.clear();
     const pads = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : [];
@@ -140,6 +149,7 @@ export class GamepadSource {
       if (y < -this.deadzone) this.out.add('up');
       if (y > this.deadzone) this.out.add('down');
     }
+    if (this.out.size) this.state?.markActivity();
   }
 }
 

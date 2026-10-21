@@ -43,7 +43,7 @@ export class Game {
   }
   update(dt: number): void {
     this.input.tick();
-    if (this.input.anyPressed()) this.idle = 0;
+    if (this.input.hadActivity) this.idle = 0;
     else this.idle += dt;
     this.scene?.update(dt);
   }
