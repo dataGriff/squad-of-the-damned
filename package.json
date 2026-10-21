@@ -1,0 +1,28 @@
+{
+  "name": "squad-of-the-damned",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "8-bit platformer: four kids vs the classic monsters, one night per monster.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck",
+    "export:levels": "tsx scripts/export-levels.ts",
+    "check:palette": "tsx scripts/palette-check.ts",
+    "check:colorblind": "tsx scripts/colorblind-check.ts",
+    "manual:pdf": "tsx scripts/manual-pdf.ts",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}

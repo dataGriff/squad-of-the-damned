@@ -1,0 +1,17 @@
+:root { color-scheme: dark; }
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: none; }
+#app { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+canvas.screen { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+.touchpad { position: fixed; inset: 0; pointer-events: none; display: none; font-family: monospace; }
+.touchpad .tbtn { position: absolute; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; pointer-events: auto; user-select: none; -webkit-user-select: none; }
+.touchpad .tbtn.on { background: rgba(255,255,255,0.4); }
+.touchpad .dl { left: 16px; bottom: 72px; }
+.touchpad .dr { left: 112px; bottom: 72px; }
+.touchpad .du { left: 64px; bottom: 120px; }
+.touchpad .dd { left: 64px; bottom: 24px; }
+.touchpad .bj { right: 24px; bottom: 56px; width: 60px; height: 60px; }
+.touchpad .ba { right: 96px; bottom: 32px; }
+.touchpad .bs { right: 24px; top: 24px; width: 40px; height: 40px; font-size: 12px; }
+.touchpad .bp { left: 24px; top: 24px; width: 40px; height: 40px; font-size: 12px; }
+body.portrait::after { content: "ROTATE TO LANDSCAPE"; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: #f8d878; font: bold 20px monospace; z-index: 10; pointer-events: none; }
+body.reduced-flash canvas.screen { filter: contrast(0.95); }
