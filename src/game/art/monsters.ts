@@ -18,7 +18,7 @@ export const BAT: AnimDef = anim(
   8,
 );
 
-export const RAT_PAL = pal('black', 'grey', 'red');
+export const RAT_PAL = pal('black', 'grey', 'pink');
 export const RAT: AnimDef = anim(
   [
     S('rat_0', ['..............1.', '..1222.......11.', '.12222211....1..', '12232222211.11..', '112222222221....', '..11..11.111....']),
@@ -37,7 +37,7 @@ export const HAND: AnimDef = anim(
   6,
 );
 
-export const FROG_PAL = pal('black', 'bogGreen', 'lime');
+export const FROG_PAL = pal('black', 'olive', 'lime');
 export const FROG: AnimDef = anim(
   [
     S('frog_0', ['..11......11....', '.1331....1331...', '.1222111112221..', '122222222222221.', '122222222222221.', '.1222222222221..', '11.111111111.11.', '1...1.....1...1.']),

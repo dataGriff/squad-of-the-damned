@@ -9,6 +9,7 @@ import { SCREEN_H, SCREEN_W } from './engine/constants';
 import { Game } from './game/scenes/scene';
 import { TitleScene } from './game/scenes/ui';
 import { NightScene } from './game/scenes/night';
+import { NIGHTS } from './game/levels/nights';
 import './style.css';
 
 const root = document.getElementById('app')!;
@@ -72,5 +73,9 @@ const orient = () => document.body.classList.toggle('portrait', window.innerHeig
 window.addEventListener('resize', orient);
 orient();
 
-// expose for the smoke test
+// expose for the smoke tests (scratch scripts drive the game through these)
 (window as unknown as { __game: Game }).__game = game;
+(window as unknown as { __debug: unknown }).__debug = {
+  startNight: (i: number) => game.replace(new NightScene(game, NIGHTS[i] ?? null)),
+  finale: () => game.replace(new NightScene(game, null)),
+};

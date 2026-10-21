@@ -253,7 +253,9 @@ export class Player implements IPlayer {
 
     // --- physics ---
     const vyBefore = b.vy;
-    applyGravity(b, dt, world.waterLevel !== null && b.y + b.h > world.waterLevel ? 0.4 : 1);
+    const inWater = map.rectHas(b.x, b.y + b.h / 2, b.w, b.h / 2, 'water');
+    applyGravity(b, dt, inWater ? 0.4 : 1);
+    if (inWater && b.vy > 80) b.vy = 80;
     stepBody(b, map, dt);
     if (b.dropThrough && !map.rectHas(b.x, b.y - 2, b.w, b.h + 4, 'oneway')) b.dropThrough = false;
     if (b.onGround && !this.wasOnGround && vyBefore > 120) {

@@ -21,12 +21,12 @@ export interface ThemeDef {
 }
 
 export const THEMES: Record<Theme, ThemeDef> = {
-  suburb: { sky: '#0000a8', tiles: pal('darkBrown', 'brown', 'green'), deco: pal('darkGrey', 'olive', 'moon'), groundTop: 'grass', bands: [[0.55, '#3c3c3c'], [0.7, '#2c1600']] },
+  suburb: { sky: '#0000a8', tiles: pal('black', 'brown', 'lime'), deco: pal('black', 'olive', 'moon'), groundTop: 'grass', bands: [[0.55, '#3c3c3c'], [0.7, '#2c1600']] },
   graveyard: { sky: '#000000', tiles: pal('darkGrey', 'grey', 'lightGrey'), deco: pal('black', 'purple', 'lightGrey'), groundTop: 'stone', bands: [[0.6, '#3c3c3c']] },
-  mansion: { sky: '#2c1600', tiles: pal('darkBrown', 'brown', 'tan'), deco: pal('darkBrown', 'red', 'yellow'), groundTop: 'plank', bands: [[0.0, '#503000'], [0.75, '#2c1600']] },
-  sewer: { sky: '#004058', tiles: pal('darkGrey', 'teal', 'mint'), deco: pal('darkGrey', 'olive', 'lime'), groundTop: 'brick', bands: [[0.5, '#3c3c3c']] },
-  drain: { sky: '#000000', tiles: pal('drainBlue', 'teal', 'cyan'), deco: pal('darkGrey', 'drainBlue', 'skyBlue'), groundTop: 'stone', bands: [[0.4, '#004058']] },
-  hub: { sky: '#0000a8', tiles: pal('darkBrown', 'brown', 'tan'), deco: pal('darkBrown', 'olive', 'moon'), groundTop: 'plank', bands: [[0.6, '#007800']] },
+  mansion: { sky: '#2c1600', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'red', 'yellow'), groundTop: 'plank', bands: [[0.0, '#503000'], [0.75, '#2c1600']] },
+  sewer: { sky: '#004058', tiles: pal('darkGrey', 'teal', 'mint'), deco: pal('black', 'olive', 'lime'), groundTop: 'brick', bands: [[0.5, '#3c3c3c']] },
+  drain: { sky: '#000000', tiles: pal('drainBlue', 'teal', 'cyan'), deco: pal('black', 'drainBlue', 'skyBlue'), groundTop: 'stone', bands: [[0.4, '#004058']] },
+  hub: { sky: '#0000a8', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'olive', 'moon'), groundTop: 'plank', bands: [[0.6, '#007800']] },
 };
 
 const FILL = S('t_fill', [
