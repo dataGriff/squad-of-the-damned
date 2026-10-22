@@ -7,6 +7,16 @@ import { Fader } from './fade';
 import type { SpritePalette } from '../game/palette';
 import { hex, type Colour } from '../game/design/tokens';
 
+/** A string drawn this frame and its character-cell box (thin and bold cells are 8×8). */
+export interface TextDraw {
+  text: string;
+  face: 'thin' | 'bold' | 'big';
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 /**
  * Renderer: draws into a 256×240 2D buffer, then presents it to the display
  * canvas at an integer scale. The optional CRT pass (#43) is a WebGL fragment
@@ -32,6 +42,11 @@ export class Renderer {
   readonly fader = new Fader();
   private fontCache = new Map<string, HTMLCanvasElement>();
   private time = 0;
+  /**
+   * When set, every string drawn is recorded with its character-cell box, so
+   * capture mode can check text stays in the safe area and has glyphs (#61).
+   */
+  textLog: TextDraw[] | null = null;
 
   constructor(parent: HTMLElement) {
     this.buffer = document.createElement('canvas');
@@ -199,6 +214,11 @@ export class Renderer {
 
   /** Draw text with the bitmap font. Colour is any CSS colour. */
   text(str: string, x: number, y: number, colour: Colour = 'text'): void {
+    this.logText(str, 'thin', x, y, str.length * FONT_W, 8);
+    this.drawText(str, x, y, colour);
+  }
+
+  private drawText(str: string, x: number, y: number, colour: Colour): void {
     const c = hex(colour);
     let cx = Math.round(x);
     const cy = Math.round(y);
@@ -255,6 +275,7 @@ export class Renderer {
   bigText(str: string, x: number, y: number, topColour: Colour, bottomColour: Colour, scale = 2): void {
     const top = hex(topColour);
     const bottom = hex(bottomColour);
+    this.logText(str, 'big', x, y, this.bigTextWidth(str, scale), 7 * scale + 2);
     const key = `${str}|${top}|${bottom}|${scale}`;
     let c = this.bigCache.get(key);
     if (!c) {
@@ -280,14 +301,29 @@ export class Renderer {
     this.ctx.drawImage(c, Math.round(x), Math.round(y));
   }
 
+  /** Inked width of big text: the last glyph is 5 pixels wide, plus the outline either side. */
   bigTextWidth(str: string, scale = 2): number {
-    return str.length * FONT_W * scale + 2;
+    return str.length ? ((str.length - 1) * FONT_W + 5) * scale + 2 : 0;
   }
 
   /** Text with a 1px black drop shadow, readable over busy tiles. */
   textShadow(str: string, x: number, y: number, colour: Colour = 'text', shadow: Colour = 'black'): void {
-    this.text(str, x + 1, y + 1, shadow);
-    this.text(str, x, y, colour);
+    this.logText(str, 'thin', x, y, str.length * FONT_W, 8);
+    this.drawText(str, x + 1, y + 1, shadow);
+    this.drawText(str, x, y, colour);
+  }
+
+  /**
+   * A symbol that belongs to the world rather than the interface (the exit
+   * arrow, stun stars, a boss's telegraph): drawn like text but moves with the
+   * scene, so it is not held to the safe area.
+   */
+  marker(str: string, x: number, y: number, colour: Colour): void {
+    this.drawText(str, x, y, colour);
+  }
+
+  private logText(text: string, face: TextDraw['face'], x: number, y: number, w: number, h: number): void {
+    if (this.textLog && text.trim()) this.textLog.push({ text, face, x: Math.round(x), y: Math.round(y), w, h });
   }
 
   private headingCache = new Map<string, HTMLCanvasElement>();
@@ -298,6 +334,7 @@ export class Renderer {
   heading(str: string, x: number, y: number, colourName: Colour = 'text', shadowName: Colour = 'black'): void {
     const colour = hex(colourName);
     const shadow = hex(shadowName);
+    this.logText(str, 'bold', x, y, str.length * FONT_W, 8);
     const key = `${str}|${colour}|${shadow}`;
     let c = this.headingCache.get(key);
     if (!c) {

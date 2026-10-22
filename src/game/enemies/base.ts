@@ -136,7 +136,7 @@ export class Enemy implements Damageable {
     const y = b.py + (b.y - b.py) * alpha - cy + b.h - s.h;
     const pal = this.flashTime > 0 ? WHITE : this.opts.pal;
     r.sprite(s, pal, x, y, this.dir > 0);
-    if (this.stunTime > 0) r.text('*', x + s.w / 2 - 4, y - 8, 'good');
+    if (this.stunTime > 0) r.marker('*', x + s.w / 2 - 4, y - 8, 'good');
   }
 }
 

@@ -2,7 +2,8 @@
 import { overlaps } from '../../engine/physics';
 import type { Renderer } from '../../engine/render';
 import { audio } from '../../engine/audio';
-import { TILE } from '../../engine/constants';
+import { SCREEN_W, TILE } from '../../engine/constants';
+import { write } from '../design/type';
 import { GIANT, GIANT_PAL, GILL, GILL_PAL, MUMMY, MUMMY_PAL, VAMPIRE, VAMPIRE_PAL, WOLFMAN, WOLF_PAL } from '../art/monsters';
 import { BANDAGE, BANDAGE_PAL } from '../art/items';
 import { Boss } from './base';
@@ -304,7 +305,7 @@ export class StitchedGiant extends Boss {
   }
   draw(r: Renderer, cx: number, cy: number, alpha: number): void {
     super.draw(r, cx, cy, alpha);
-    if (this.redeemed && this.defeatTime > 0.8) r.textShadow('...HE JUST WANTED A FRIEND.', 20, 60, 'white');
+    if (this.redeemed && this.defeatTime > 0.8) write(r, 'label', '...HE JUST WANTED A FRIEND.', SCREEN_W / 2, 60, { align: 'center' });
   }
 }
 

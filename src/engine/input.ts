@@ -37,7 +37,12 @@ export const DEFAULT_BINDINGS: Bindings = {
   },
 };
 
+/** The kind of device the player last used, so prompts can show its buttons (#62). */
+export type Device = 'keyboard' | 'gamepad' | 'touch';
+
 export class InputState {
+  /** Updated by the sources on real input; defaults to the keyboard. */
+  device: Device = 'keyboard';
   private down = new Set<Action>();
   private prev = new Set<Action>();
   /** Raw per-source states merged each tick. */
@@ -111,6 +116,7 @@ export class KeyboardSource {
   private onKey(e: KeyboardEvent, down: boolean): void {
     if (e.repeat) return;
     if (down) {
+      this.state.device = 'keyboard';
       this.held.add(e.code);
       for (const a of ACTIONS) if (this.bindings.keys[a].includes(e.code)) this.state.pulse(a);
     } else this.held.delete(e.code);
@@ -149,7 +155,10 @@ export class GamepadSource {
       if (y < -this.deadzone) this.out.add('up');
       if (y > this.deadzone) this.out.add('down');
     }
-    if (this.out.size) this.state?.markActivity();
+    if (this.out.size) {
+      this.state?.markActivity();
+      if (this.state) this.state.device = 'gamepad';
+    }
   }
 }
 
@@ -165,6 +174,7 @@ export class TouchSource {
       b.textContent = label;
       const press = (e: Event) => {
         e.preventDefault();
+        if (this.state) this.state.device = 'touch';
         actions.forEach((a) => {
           this.out.add(a);
           this.state?.pulse(a);

@@ -3,7 +3,7 @@ import type { Renderer } from '../../engine/render';
 import { SCREEN_H, SCREEN_W } from '../../engine/constants';
 import { ACTIONS, rebindKey, type Action } from '../../engine/input';
 import { audio } from '../../engine/audio';
-import { Game, Menu, type Scene } from './scene';
+import { Game, type Scene } from './scene';
 import { SONGS } from '../music';
 import { MANUAL_PAGES, pagesFound } from '../manual';
 import { KIDS, KID_ORDER, type KidId } from '../squad';
@@ -14,15 +14,24 @@ import { AIR_U } from '../art/autotiles';
 import { drawBackdrop, Storm } from '../backdrop';
 import { BAT, BAT_PAL, CREATURE_ART } from '../art/monsters';
 import { cycled, cycleList } from '../palette';
-
-const WINDOW_FLICKER = cycleList(['yellow', 'yellow', 'sand', 'yellow', 'amber', 'yellow']);
 import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, ROPE_LADDER, ROPE_PAL, TREEHOUSE, TREEHOUSE_PAL } from '../art/scenery';
 import { NightScene } from './night';
 import { StoryScene } from './story';
 import { CHAPTERS, beforeChapter, storySoFar } from '../story';
 import { solid } from '../design/tokens';
+import { measure, paragraph, wrapTo, write } from '../design/type';
+import { SAFE, centred } from '../design/layout';
+import { Menu, ROW_HEIGHT } from '../ui/menu';
+import { Dialog } from '../ui/dialog';
+import { panel } from '../ui/panel';
+import { keyName, prompt } from '../ui/prompt';
 
+const WINDOW_FLICKER = cycleList(['yellow', 'yellow', 'sand', 'yellow', 'amber', 'yellow']);
 const GREY = solid('darkGrey');
+const SAFE_RIGHT = SAFE.x + SAFE.w;
+const SAFE_BOTTOM = SAFE.y + SAFE.h;
+/** The y of a line of text sitting on the bottom of the safe area. */
+const FOOTER_Y = SAFE_BOTTOM - 8;
 
 export class TitleScene implements Scene {
   private t = 0;
@@ -32,7 +41,7 @@ export class TitleScene implements Scene {
   constructor(private game: Game) {
     const hasSave = game.save.data.nightsCleared.length > 0 || game.save.data.pages.length > 0;
     this.menu = new Menu(hasSave ? ['CONTINUE', 'NEW GAME', 'OPTIONS'] : ['NEW GAME', 'OPTIONS'], (i) => {
-      const item = this.menu.items[i];
+      const item = this.menu.items[i].label;
       if (item === 'CONTINUE') game.replace(new HubScene(game));
       else if (item === 'NEW GAME') {
         if (hasSave) game.push(new ConfirmScene(game, 'ERASE SAVE AND START OVER?', () => {
@@ -87,14 +96,12 @@ export class TitleScene implements Scene {
       r.sprite(s, KIDS[id].palette, 84 + i * 24, 208 - s.h, false);
     });
     // logo: a dithered dark band behind it, then the small line and the big dripping title
-    r.dither(0, 28, SCREEN_W, 68, 'panel');
-    r.dither(0, 36, SCREEN_W, 52, 'panel', 1);
-    const small = 'SQUAD OF';
-    r.bigText(small, (SCREEN_W - r.bigTextWidth(small)) / 2, 34, 'white', 'lightGrey');
+    r.dither(0, 28, SCREEN_W, 68, 'black');
+    r.dither(0, 36, SCREEN_W, 52, 'black', 1);
+    write(r, 'subtitle', 'SQUAD OF', SCREEN_W / 2, 34, { align: 'center' });
     const big = 'THE DAMNED';
-    const bw = r.bigTextWidth(big, 3);
-    const bx = Math.round((SCREEN_W - bw) / 2);
-    r.bigText(big, bx, 56, 'danger', 'dangerShade', 3);
+    const bx = Math.round((SCREEN_W - measure('title', big)) / 2);
+    write(r, 'title', big, bx, 56);
     for (let i = 0; i < 7; i++) {
       const x = bx + 6 + i * 11 + ((i * 7) % 5);
       const len = ((this.t * 9 + i * 13) % 26) - 4;
@@ -104,32 +111,32 @@ export class TitleScene implements Scene {
       }
     }
     if (!this.showMenu) {
-      if (Math.floor(this.t * 2) % 2 === 0) r.headingCentered('PRESS START', 132, 'text');
+      if (Math.floor(this.t * 2) % 2 === 0) write(r, 'display', 'PRESS START', SCREEN_W / 2, 132, { align: 'center' });
     } else {
-      r.box(SCREEN_W / 2 - 60, 118, 120, this.menu.items.length * 12 + 12, 'panel');
-      this.menu.draw(r, 124);
+      const box = centred(120, this.menu.height() + 16, { x: 0, y: 118, w: SCREEN_W, h: this.menu.height() + 16 });
+      panel(r, box);
+      this.menu.draw(r, SCREEN_W / 2, box.y + 8, { align: 'center' });
     }
-    r.rect(0, 228, SCREEN_W, 12, 'panel');
-    r.textCentered('HUNGOVERCODERS 2026', 230, 'textSoft');
+    // credit on a black band over the lower half of the ground, inside the safe area
+    r.rect(0, FOOTER_Y - 4, SCREEN_W, SCREEN_H - FOOTER_Y + 4, 'black');
+    write(r, 'bodySoft', 'HUNGOVERCODERS 2026', SCREEN_W / 2, FOOTER_Y, { align: 'center' });
   }
 }
 
 export class ConfirmScene implements Scene {
   overlay = true;
-  private menu: Menu;
-  constructor(private game: Game, private text: string, onYes: () => void) {
-    this.menu = new Menu(['NO', 'YES'], (i) => {
+  private dialog: Dialog;
+  constructor(private game: Game, text: string, onYes: () => void) {
+    this.dialog = new Dialog(text, ['NO', 'YES'], (i) => {
       game.pop();
       if (i === 1) onYes();
     }, () => game.pop());
   }
   update(): void {
-    this.menu.update(this.game.input);
+    this.dialog.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.box(16, 90, SCREEN_W - 32, 60, 'dialog');
-    r.textCentered(this.text, 100, 'text');
-    this.menu.draw(r, 118);
+    this.dialog.draw(r);
   }
 }
 
@@ -155,11 +162,12 @@ export class HubScene implements Scene {
   }
   private refreshNights(): void {
     const cleared = this.game.save.data.nightsCleared;
-    const items = NIGHTS.map((n) => `${cleared.includes(n.number) ? '*' : ' '} NIGHT ${n.number}  ${n.short}`);
     const allClear = NIGHTS.every((n) => cleared.includes(n.number));
-    items.push(allClear ? (this.game.save.data.gameComplete ? '* MIDNIGHT: THE PORTAL' : '  MIDNIGHT: THE PORTAL') : '  ??? (CLEAR ALL NIGHTS)');
-    items.push('  BACK');
-    this.nightMenu.items = items;
+    this.nightMenu.setItems([
+      ...NIGHTS.map((n) => ({ label: `NIGHT ${n.number}  ${n.short}`, value: cleared.includes(n.number) ? '*' : '' })),
+      allClear ? { label: 'MIDNIGHT: THE PORTAL', value: this.game.save.data.gameComplete ? '*' : '' } : { label: '??? (CLEAR ALL NIGHTS)', disabled: true },
+      { label: 'BACK' },
+    ]);
   }
   /** Start a night, playing its story chapter first if it hasn't been seen (#57). */
   private startNight(night: (typeof NIGHTS)[number] | null): void {
@@ -170,17 +178,9 @@ export class HubScene implements Scene {
     else go();
   }
   private pickNight(i: number): void {
-    if (i < NIGHTS.length) {
-      this.startNight(NIGHTS[i]);
-      return;
-    }
-    if (i === NIGHTS.length) {
-      const allClear = NIGHTS.every((n) => this.game.save.data.nightsCleared.includes(n.number));
-      if (allClear) this.startNight(null);
-      else audio.play('tick');
-      return;
-    }
-    this.mode = 'main';
+    if (i < NIGHTS.length) this.startNight(NIGHTS[i]);
+    else if (i === NIGHTS.length) this.startNight(null);
+    else this.mode = 'main';
   }
   enter(): void {
     audio.playSong(SONGS.hub);
@@ -212,35 +212,40 @@ export class HubScene implements Scene {
     for (let i = 0; i < 9; i++) {
       const fx = (i * 53 + Math.sin(this.t * 0.7 + i) * 20 + 256) % 256;
       const fy = 120 + ((i * 31) % 80) + Math.cos(this.t * 0.9 + i * 2) * 8;
-      if (Math.sin(this.t * 3 + i * 1.7) > -0.2) r.rect(fx, fy, 1, 1, 'accent');
+      if (Math.sin(this.t * 3 + i * 1.7) > -0.2) r.rect(fx, fy, 1, 1, 'yellow');
     }
-    r.box(0, 0, SCREEN_W, 18, 'panel');
-    r.headingCentered('THE TREEHOUSE', 5, 'accent');
+    // title bar, reaching down into the safe area
+    r.box(0, 0, SCREEN_W, SAFE.y + 18, 'panel');
+    write(r, 'heading', 'THE TREEHOUSE', SCREEN_W / 2, SAFE.y + 2, { align: 'center' });
     const { found, total } = pagesFound(this.game.save.data.pages);
-    r.textShadow(`PAGES ${found}/${total}`, 8, 228, 'text');
-    r.textShadow(`SILVER ${this.game.save.data.silver}`, 160, 228, 'text');
+    write(r, 'label', `PAGES ${found}/${total}`, SAFE.x, FOOTER_Y);
+    write(r, 'label', `SILVER ${this.game.save.data.silver}`, SAFE_RIGHT, FOOTER_Y, { align: 'right' });
     if (this.mode === 'main') {
       KID_ORDER.forEach((id, i) => {
         const s = kidFrame(id, 'idle', this.t, i);
         r.sprite(s, KIDS[id].palette, 76 + i * 28, 92 - s.h, i > 1);
       });
-      r.box(SCREEN_W / 2 - 76, 128, 152, 84, 'panel');
-      this.menu.draw(r, 136);
+      const box = { x: SCREEN_W / 2 - 76, y: 128, w: 152, h: this.menu.height() + 16 };
+      panel(r, box);
+      this.menu.draw(r, SCREEN_W / 2, box.y + 8, { align: 'center' });
     } else if (this.mode === 'nights') {
-      r.box(4, 100, SCREEN_W - 8, 120, 'panel');
-      this.nightMenu.draw(r, 108, 'text', 'textDim', false, 12);
-      r.text('* = CLEARED', 12, 204, 'textSoft');
+      const box = { x: SAFE.x, y: 100, w: SAFE.w, h: 112 };
+      const inner = panel(r, box);
+      this.nightMenu.draw(r, inner.x, inner.y, { valueX: inner.w - 8 });
+      write(r, 'hint', '* = CLEARED', inner.x, inner.y + inner.h - 8);
     } else {
-      r.box(4, 96, SCREEN_W - 8, 128, 'panel');
+      // the squad: who does what, two lines each
+      const box = { x: SAFE.x, y: 56, w: SAFE.w, h: SAFE_BOTTOM - 16 - 56 };
+      const inner = panel(r, box);
       KID_ORDER.forEach((id, i) => {
         const k = KIDS[id];
         const s = KID_SHEETS[id].anims.idle.frames[0];
-        const y = 104 + i * 28;
-        r.sprite(s, k.palette, 16 + 8 - s.w / 2, y + 24 - s.h);
-        r.heading(k.name, 40, y + 1, 'accent');
-        r.text(k.blurb.slice(0, 26), 40, y + 12, 'textSoft');
+        const y = inner.y + i * 34;
+        r.sprite(s, k.palette, inner.x + 8 - s.w / 2, y + 28 - s.h);
+        write(r, 'heading', k.name, inner.x + 24, y);
+        paragraph(r, 'bodySoft', k.blurb, inner.x + 24, y + 12, inner.w - 24);
       });
-      r.text('START TO GO BACK', 12, 212, 'textDim');
+      prompt(r, this.game.prompts, 'pause', 'BACK', inner.x + inner.w, inner.y + inner.h - 8, { align: 'right' });
     }
   }
 }
@@ -248,24 +253,16 @@ export class HubScene implements Scene {
 /** Options (#44, #47). */
 export class OptionsScene implements Scene {
   overlay = true;
-  private index = 0;
-  private items = ['MUSIC', 'SOUND', 'CRT FILTER', 'HOLD TO JUMP', 'REDUCED FLASH', 'TOUCH PAD', 'REMAP KEYS', 'ERASE SAVE', 'BACK'];
-  constructor(private game: Game) {}
-  update(): void {
-    const input = this.game.input;
+  private menu: Menu;
+  private static ITEMS = ['MUSIC', 'SOUND', 'CRT FILTER', 'HOLD TO JUMP', 'REDUCED FLASH', 'TOUCH PAD', 'REMAP KEYS', 'ERASE SAVE', 'BACK'];
+  constructor(private game: Game) {
+    this.menu = new Menu(OptionsScene.ITEMS, (i) => this.act(OptionsScene.ITEMS[i], 0, true), () => game.pop());
+    this.menu.onAdjust = (i, dx) => this.act(OptionsScene.ITEMS[i], dx, false);
+  }
+  private act(item: string, dx: number, go: boolean): void {
     const o = this.game.save.data.options;
-    if (input.pressed('down')) {
-      this.index = (this.index + 1) % this.items.length;
-      audio.play('menu');
-    }
-    if (input.pressed('up')) {
-      this.index = (this.index - 1 + this.items.length) % this.items.length;
-      audio.play('menu');
-    }
-    const dx = (input.pressed('right') ? 1 : 0) - (input.pressed('left') ? 1 : 0);
-    const go = input.pressed('menu') || input.pressed('jump');
     const toggle = dx !== 0 || go;
-    switch (this.items[this.index]) {
+    switch (item) {
       case 'MUSIC':
         if (dx) o.musicVolume = Math.max(0, Math.min(1, o.musicVolume + dx * 0.1));
         break;
@@ -308,12 +305,12 @@ export class OptionsScene implements Scene {
       this.game.save.save();
       this.game.applyOptions();
     }
-    if (input.pressed('pause')) this.game.pop();
+  }
+  update(): void {
+    this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
     const o = this.game.save.data.options;
-    r.box(8, 24, SCREEN_W - 16, 192, 'dialog');
-    r.headingCentered('OPTIONS', 32, 'accent');
     const vals: Record<string, string> = {
       MUSIC: bar(o.musicVolume),
       SOUND: bar(o.sfxVolume),
@@ -321,16 +318,12 @@ export class OptionsScene implements Scene {
       'HOLD TO JUMP': o.holdToJump ? 'ON' : 'OFF',
       'REDUCED FLASH': o.reducedFlash ? 'ON' : 'OFF',
       'TOUCH PAD': o.touchControls.toUpperCase(),
-      'REMAP KEYS': '',
-      'ERASE SAVE': '',
-      BACK: '',
     };
-    this.items.forEach((it, i) => {
-      const sel = i === this.index;
-      r.text((sel ? '►' : ' ') + it, 20, 52 + i * 14, sel ? 'text' : 'textSoft');
-      r.text(vals[it], 150, 52 + i * 14, sel ? 'accent' : 'textSoft');
-    });
-    r.text('LEFT/RIGHT TO CHANGE', 20, 190, 'textDim');
+    this.menu.items.forEach((it) => (it.value = vals[it.label]));
+    const inner = dialogFrame(r, 'OPTIONS');
+    this.menu.draw(r, inner.x, inner.y, { rowHeight: 14, valueX: 136, dim: 'textSoft' });
+    prompt(r, this.game.prompts, 'left', '', inner.x, inner.y + inner.h - 8);
+    prompt(r, this.game.prompts, 'right', 'CHANGE', inner.x + 14, inner.y + inner.h - 8);
   }
 }
 function bar(v: number): string {
@@ -338,20 +331,32 @@ function bar(v: number): string {
   return '●'.repeat(n) + '○'.repeat(10 - n);
 }
 
+/** A full dialog panel with a heading; returns the content rect under the heading. */
+function dialogFrame(r: Renderer, title: string) {
+  const box = { x: SAFE.x, y: 24, w: SAFE.w, h: 192 };
+  const inner = panel(r, box, 'dialog');
+  write(r, 'heading', title, SCREEN_W / 2, inner.y, { align: 'center' });
+  return { x: inner.x + 4, y: inner.y + 20, w: inner.w - 8, h: inner.h - 20 };
+}
+
 /** Key remapping (#6). */
 export class RemapScene implements Scene {
   overlay = true;
-  private index = 0;
   private waiting = false;
   private actions: Action[] = ACTIONS.filter((a) => a !== 'menu');
-  constructor(private game: Game) {}
+  private menu: Menu;
+  constructor(private game: Game) {
+    this.menu = new Menu([...this.actions.map((a) => a.toUpperCase()), 'BACK'], (i) => {
+      if (i === this.actions.length) this.game.pop();
+      else this.waiting = true;
+    }, () => game.pop());
+  }
   update(): void {
-    const input = this.game.input;
     const kb = this.game.keyboard;
     if (this.waiting) {
       const code = kb?.lastCode();
       if (code && code !== 'Escape') {
-        this.game.bindings = rebindKey(this.game.bindings, this.actions[this.index], code);
+        this.game.bindings = rebindKey(this.game.bindings, this.actions[this.menu.index], code);
         if (kb) kb.bindings = this.game.bindings;
         this.game.save.data.bindings = this.game.bindings;
         this.game.save.save();
@@ -360,32 +365,16 @@ export class RemapScene implements Scene {
       } else if (code === 'Escape') this.waiting = false;
       return;
     }
-    if (input.pressed('down')) this.index = (this.index + 1) % (this.actions.length + 1);
-    if (input.pressed('up')) this.index = (this.index - 1 + this.actions.length + 1) % (this.actions.length + 1);
-    if (input.pressed('menu') || input.pressed('jump')) {
-      if (this.index === this.actions.length) this.game.pop();
-      else {
-        this.waiting = true;
-        audio.play('menu');
-      }
-    }
-    if (input.pressed('pause')) this.game.pop();
+    this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.box(8, 24, SCREEN_W - 16, 192, 'dialog');
-    r.headingCentered('REMAP KEYS', 32, 'accent');
     this.actions.forEach((a, i) => {
-      const sel = i === this.index;
-      r.text((sel ? '►' : ' ') + a.toUpperCase(), 20, 52 + i * 14, sel ? 'text' : 'textSoft');
-      const keys = this.game.bindings.keys[a].map(pretty).join(' ');
-      r.text(sel && this.waiting ? 'PRESS A KEY...' : keys, 110, 52 + i * 14, sel ? 'accent' : 'textSoft');
+      const keys = this.game.bindings.keys[a].map(keyName).join(' ');
+      this.menu.items[i].value = i === this.menu.index && this.waiting ? 'PRESS A KEY...' : keys;
     });
-    const backSel = this.index === this.actions.length;
-    r.text((backSel ? '►' : ' ') + 'BACK', 20, 52 + this.actions.length * 14, backSel ? 'text' : 'textSoft');
+    const inner = dialogFrame(r, 'REMAP KEYS');
+    this.menu.draw(r, inner.x, inner.y, { rowHeight: 14, valueX: 88, dim: 'textSoft' });
   }
-}
-function pretty(code: string): string {
-  return code.replace('Key', '').replace('Arrow', '').replace('Digit', '').toUpperCase().slice(0, 6);
 }
 
 /** In-game manual (#35): found pages fill in, unfound stay silhouettes. */
@@ -422,29 +411,22 @@ export class ManualScene implements Scene {
     r.rect(18, 30, 98, 88, 'inkSoft');
     r.rect(20, 32, 94, 84, found ? 'panel' : 'edge');
     r.spriteScaled(art.sprite, found ? art.pal : GREY, 67 - (art.sprite.w * scale) / 2, 112 - art.sprite.h * scale, scale);
-    wrap(found ? page.creature : '???', 12).forEach((l, i) => r.heading(l, 18, 123 + i * 11, 'ink', 'paperShade'));
-    r.text(page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148, 'inkAccent');
+    wrapTo('paperHeading', found ? page.creature : '???', 96).forEach((l, i) => write(r, 'paperHeading', l, 18, 123 + i * 11));
+    write(r, 'paperAccent', page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148);
     const lx = SCREEN_W / 2 + 8;
-    const col = 13;
+    const width = 104;
     if (found) {
       let y = 32;
-      for (const l of wrap(page.lore.join(' '), col)) {
-        r.text(l, lx, y, 'ink');
-        y += 10;
-      }
-      y += 6;
-      r.heading('WEAKNESS:', lx, y, 'inkAccent', 'paperShade');
+      y += paragraph(r, 'paperBody', page.lore.join(' '), lx, y, width) + 6;
+      write(r, 'paperAlert', 'WEAKNESS:', lx, y);
       y += 12;
-      for (const l of wrap(`${page.weaknessText} ${page.hint}`, col)) {
-        r.text(l, lx, y, 'ink');
-        y += 10;
-      }
+      paragraph(r, 'paperBody', `${page.weaknessText} ${page.hint}`, lx, y, width);
     } else {
-      wrap('PAGE NOT FOUND YET. LOOK BEHIND VENTS AND CRACKED WALLS.', col).forEach((l, i) => r.text(l, lx, 32 + i * 10, 'textDim'));
+      paragraph(r, 'hint', 'PAGE NOT FOUND YET. LOOK BEHIND VENTS AND CRACKED WALLS.', lx, 32, width);
     }
     const { found: f, total } = pagesFound(this.game.save.data.pages);
-    r.text(`◄ ${this.index + 1}/${MANUAL_PAGES.length} ►`, 20, 200, 'inkSoft');
-    r.text(`FOUND ${f}/${total}`, 150, 200, 'inkSoft');
+    write(r, 'paperNote', `◄ ${this.index + 1}/${MANUAL_PAGES.length} ►`, 20, 200);
+    write(r, 'paperNote', `FOUND ${f}/${total}`, 150, 200);
   }
 }
 
@@ -452,22 +434,6 @@ export class ManualScene implements Scene {
 function kidFrame(id: KidId, name: string, t: number, i: number) {
   const a = KID_SHEETS[id].anims[name];
   return a.frames[Math.floor(t * a.fps + i * 3) % a.frames.length];
-}
-
-/** Word-wrap to lines of at most `width` characters. */
-export function wrap(text: string, width: number): string[] {
-  const out: string[] = [];
-  let line = '';
-  for (const word of text.split(/\s+/).filter(Boolean)) {
-    if (!line) line = word;
-    else if (line.length + 1 + word.length <= width) line += ' ' + word;
-    else {
-      out.push(line);
-      line = word;
-    }
-  }
-  if (line) out.push(line);
-  return out;
 }
 
 export class PauseScene implements Scene {
@@ -488,9 +454,10 @@ export class PauseScene implements Scene {
     this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.box(44, 78, SCREEN_W - 88, 84, 'dialog');
-    r.headingCentered('PAUSED', 87, 'accent');
-    this.menu.draw(r, 106);
+    const box = centred(168, 20 + this.menu.height() + 16);
+    const inner = panel(r, box, 'dialog');
+    write(r, 'heading', 'PAUSED', SCREEN_W / 2, inner.y, { align: 'center' });
+    this.menu.draw(r, SCREEN_W / 2, inner.y + 20, { align: 'center' });
   }
 }
 
@@ -512,12 +479,13 @@ export class GameOverScene implements Scene {
   }
   draw(r: Renderer): void {
     r.clear('screen');
-    r.headingCentered('THE SQUAD IS DOWN', 80, 'danger');
-    r.textCentered('...BUT THE NIGHT IS NOT OVER', 96, 'textSoft');
-    if (this.t > 0.8) this.menu.draw(r, 130);
+    write(r, 'alert', 'THE SQUAD IS DOWN', SCREEN_W / 2, 80, { align: 'center' });
+    write(r, 'bodySoft', '...BUT THE NIGHT IS NOT OVER', SCREEN_W / 2, 96, { align: 'center' });
+    if (this.t > 0.8) this.menu.draw(r, SCREEN_W / 2, 130, { align: 'center' });
   }
 }
 
+/** Credits: the lines scroll up through a window above the squad running along the bottom. */
 export class WinScene implements Scene {
   private t = 0;
   private lines = [
@@ -536,6 +504,8 @@ export class WinScene implements Scene {
     '',
     'PRESS START',
   ];
+  /** The credits window: from the top of the safe area to just above the kids. */
+  private static WINDOW = { top: SAFE.y + 8, bottom: 168 };
   constructor(private game: Game) {}
   enter(): void {
     audio.playSong(SONGS.win);
@@ -548,14 +518,18 @@ export class WinScene implements Scene {
   }
   draw(r: Renderer): void {
     r.clear('screen');
-    const scroll = Math.max(0, Math.min(this.lines.length * 12 - 100, (this.t - 1) * 12));
+    const { top, bottom } = WinScene.WINDOW;
+    const step = ROW_HEIGHT;
+    // scroll until the last line rests in the middle of the window
+    const scroll = Math.max(0, Math.min(this.lines.length * step - (bottom - top) / 2, (this.t - 1) * step));
     this.lines.forEach((l, i) => {
-      const y = 120 + i * 12 - scroll;
-      if (y > 20 && y < SCREEN_H - 30) r.textCentered(l, y, i === 9 ? 'danger' : 'text');
+      const y = bottom - 24 + i * step - scroll;
+      if (y >= top && y <= bottom - 8) write(r, i === 9 ? 'alert' : 'body', l, SCREEN_W / 2, y, { align: 'center' });
     });
+    const ground = SAFE_BOTTOM - 16;
     KID_ORDER.forEach((id, i) => {
       const s = kidFrame(id, 'run', this.t, i);
-      r.sprite(s, KIDS[id].palette, 60 + i * 36 + Math.sin(this.t + i) * 4, SCREEN_H - 16 - s.h);
+      r.sprite(s, KIDS[id].palette, 60 + i * 36 + Math.sin(this.t + i) * 4, ground - s.h);
     });
   }
 }

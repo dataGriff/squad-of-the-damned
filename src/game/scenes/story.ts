@@ -1,11 +1,12 @@
 /** Plays story chapters (#57): framed panel art, typewriter text, A to advance, START to skip. */
 import type { Renderer } from '../../engine/render';
-import { SCREEN_W } from '../../engine/constants';
 import { audio } from '../../engine/audio';
 import type { Game, Scene } from './scene';
 import { BOX, type Chapter } from '../story';
 import { SONGS } from '../music';
-import { wrap } from './ui';
+import { wrap, write } from '../design/type';
+import { SAFE } from '../design/layout';
+import { prompt } from '../ui/prompt';
 
 export const TEXT_COLS = 26;
 const CPS = 32;
@@ -93,10 +94,12 @@ export class StoryScene implements Scene {
     lines.forEach((line, i) => {
       const visible = line.slice(0, Math.max(0, left));
       left -= line.length + 1;
-      r.text(visible, BOX.x + 6, 150 + i * 13, 'text');
+      write(r, 'body', visible, BOX.x + 6, 150 + i * 13);
     });
     if (this.shown >= p.text.length && Math.floor(this.t * 3) % 2 === 0) r.text('▼', BOX.x + BOX.w - 12, 206, 'accent');
-    r.text('START: SKIP', SCREEN_W - 92, 228, 'textFaint');
-    r.text(`${this.index + 1}/${this.panels.length}`, BOX.x - 3, 228, 'textFaint');
+    // footer on the last safe line: page count and how to skip
+    const footY = SAFE.y + SAFE.h - 8;
+    write(r, 'caption', `${this.index + 1}/${this.panels.length}`, BOX.x - 3, footY);
+    prompt(r, this.game.prompts, 'pause', 'SKIP', BOX.x + BOX.w + 3, footY, { align: 'right', style: 'caption' });
   }
 }

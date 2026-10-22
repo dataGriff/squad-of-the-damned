@@ -29,6 +29,9 @@ import { PAGE_BY_ID } from '../manual';
 import { GameOverScene, HubScene, PauseScene, WinScene } from './ui';
 import { StoryScene } from './story';
 import { CHAPTERS, afterChapter } from '../story';
+import { write } from '../design/type';
+import { SAFE } from '../design/layout';
+import { panel } from '../ui/panel';
 
 export interface NightOpts {
   demo?: boolean;
@@ -402,30 +405,32 @@ export class NightScene implements Scene {
     if (this.heatmap) this.drawHeatmap(r, cam.x, cam.y);
     // hit / swap flash
     if (this.world.flash > 0) r.dither(0, 0, SCREEN_W, SCREEN_H, this.world.flashColour, this.world.flash & 1);
-    drawHud(r, this.squad, this.timer, this.pagePopup, this.popupT);
+    drawHud(r, { squad: this.squad, lives: this.lives, timer: this.timer, pagePopup: this.pagePopup, popupT: this.popupT, prompts: this.game.prompts });
     if (this.boss) this.boss.drawHud(r);
-    r.textShadow(`LIVES ${this.lives}`, 180, 228, 'text');
-    if (this.opts.demo) r.textCentered('DEMO - PRESS ANY KEY', 228, Math.floor(this.world.time * 2) % 2 ? 'text' : 'textDim');
+    const cx = SCREEN_W / 2;
+    if (this.opts.demo) write(r, 'label', 'DEMO - PRESS ANY KEY', cx, SAFE.y + SAFE.h - 8, { align: 'center', colour: Math.floor(this.world.time * 2) % 2 ? 'text' : 'textDim' });
     switch (this.state) {
       case 'intro': {
-        r.box(8, 92, SCREEN_W - 16, 50, 'panel');
+        const inner = panel(r, { x: SAFE.x, y: 88, w: SAFE.w, h: 56 });
         const [head, place] = this.night ? this.night.title.split(': ') : ['MIDNIGHT', 'CLOSE THE PORTAL'];
-        r.headingCentered(head, 99, 'accent');
-        r.textCentered(place, 112, 'text');
-        r.textCentered(this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', 126, 'textSoft');
+        write(r, 'heading', head, cx, inner.y, { align: 'center' });
+        write(r, 'body', place, cx, inner.y + 14, { align: 'center' });
+        write(r, 'bodySoft', this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', cx, inner.y + 28, { align: 'center' });
         break;
       }
-      case 'cleared':
-        r.box(24, 96, SCREEN_W - 48, 32, 'panel');
-        r.headingCentered(this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', 108, 'accent');
+      case 'cleared': {
+        const inner = panel(r, { x: 24, y: 96, w: SCREEN_W - 48, h: 32 });
+        write(r, 'heading', this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', cx, inner.y + 4, { align: 'center' });
         break;
-      case 'midnight':
-        r.box(24, 96, SCREEN_W - 48, 32, 'panel');
-        r.headingCentered('MIDNIGHT!', 104, 'danger');
-        r.textCentered('THE PORTAL OPENS.', 116, 'text');
+      }
+      case 'midnight': {
+        const inner = panel(r, { x: 24, y: 92, w: SCREEN_W - 48, h: 40 });
+        write(r, 'alert', 'MIDNIGHT!', cx, inner.y, { align: 'center' });
+        write(r, 'body', 'THE PORTAL OPENS.', cx, inner.y + 14, { align: 'center' });
         break;
+      }
       case 'dying':
-        if (this.stateT > 0.8) r.headingCentered(this.lives > 0 ? 'OUCH!' : 'THE SQUAD IS DOWN', 108, 'danger');
+        if (this.stateT > 0.8) write(r, 'alert', this.lives > 0 ? 'OUCH!' : 'THE SQUAD IS DOWN', cx, 108, { align: 'center' });
         break;
     }
   }

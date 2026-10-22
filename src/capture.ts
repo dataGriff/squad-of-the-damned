@@ -14,14 +14,24 @@ import { NightScene } from './game/scenes/night';
 import { StoryScene } from './game/scenes/story';
 import { CHAPTERS } from './game/story';
 import { NIGHTS } from './game/levels/nights';
+import { SAFE, contains } from './game/design/layout';
+import { hasGlyph } from './engine/font';
+import { displayGlyph } from './engine/display-font';
 
 const DT = 1 / 60;
+
+export interface Shot {
+  /** The 256×240 frame as a PNG data URL. */
+  png: string;
+  /** Text drawn outside the safe area, or with characters the font lacks (#61). */
+  problems: string[];
+}
 
 export interface CaptureApi {
   /** Names of every shot, in a stable order. */
   shots: string[];
-  /** Reset to a fresh game and play the named shot's setup; returns the frame as a PNG data URL. */
-  shoot(name: string): string;
+  /** Reset to a fresh game and play the named shot's setup. */
+  shoot(name: string): Shot;
 }
 
 /** Shot setups. Each starts from `reset()`: a fresh save, seed 1 and a clock at zero. */
@@ -158,10 +168,19 @@ class Capturer {
       this.game.renderer.fader.tick(DT);
     }
   }
-  frame(): string {
+  frame(): Shot {
+    const r = this.game.renderer;
+    r.textLog = [];
     this.game.draw(1);
-    this.game.renderer.present(0);
-    return this.game.renderer.buffer.toDataURL('image/png');
+    r.present(0);
+    const problems: string[] = [];
+    for (const t of r.textLog) {
+      if (!contains(SAFE, t)) problems.push(`'${t.text}' at ${t.x},${t.y} (${t.w}×${t.h}) is outside the safe area`);
+      const missing = [...t.text].filter((ch) => ch !== ' ' && !hasGlyph(ch) && !(t.face === 'bold' && displayGlyph(ch)));
+      if (missing.length) problems.push(`'${t.text}' has no glyph for ${missing.map((c) => `'${c}'`).join(', ')}`);
+    }
+    r.textLog = null;
+    return { png: r.buffer.toDataURL('image/png'), problems };
   }
 }
 
@@ -170,7 +189,7 @@ export function installCapture(game: Game): CaptureApi {
   const table = shotTable(c);
   return {
     shots: Object.keys(table),
-    shoot(name: string): string {
+    shoot(name: string): Shot {
       const setup = table[name];
       if (!setup) throw new Error(`No capture shot '${name}'`);
       c.reset();

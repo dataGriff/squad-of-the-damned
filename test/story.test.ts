@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS, CHAPTER_ORDER, afterChapter, beforeChapter, storySoFar } from '../src/game/story';
 import { StoryScene, TEXT_COLS } from '../src/game/scenes/story';
-import { wrap } from '../src/game/scenes/ui';
+import { wrap } from '../src/game/design/type';
 import { InputState, type Action } from '../src/engine/input';
 import { SaveStore, migrate } from '../src/engine/save';
 import { NIGHTS } from '../src/game/levels/nights';

@@ -9,7 +9,8 @@
  *   npm run test:visual -- title hub  only these shots
  *
  * On a mismatch the actual frame and a diff (changed pixels in red over a
- * dimmed copy of the golden) are written to test/visual/out/.
+ * dimmed copy of the golden) are written to test/visual/out/. Each shot also
+ * fails if it draws text outside the safe area or with a missing glyph.
  */
 import { chromium } from 'playwright';
 import { preview } from 'vite';
@@ -37,7 +38,7 @@ await page.addInitScript('globalThis.__name = (f) => f');
 await page.goto(url + '?capture');
 await page.waitForFunction(() => 'shots' in ((window as unknown as { __capture?: object }).__capture ?? {}));
 
-type Api = { shots: string[]; shoot(n: string): string };
+type Api = { shots: string[]; shoot(n: string): { png: string; problems: string[] } };
 const all = await page.evaluate(() => (window as unknown as { __capture: Api }).__capture.shots);
 const shots = only.length ? all.filter((s) => only.includes(s)) : all;
 const unknown = only.filter((s) => !all.includes(s));
@@ -46,7 +47,13 @@ if (unknown.length) throw new Error(`Unknown shots: ${unknown.join(', ')}`);
 mkdirSync(GOLDEN, { recursive: true });
 let failed = 0;
 for (const name of shots) {
-  const actual = await page.evaluate((n) => (window as unknown as { __capture: Api }).__capture.shoot(n), name);
+  const shot = await page.evaluate((n) => (window as unknown as { __capture: Api }).__capture.shoot(n), name);
+  const actual = shot.png;
+  // layout rules (#61): text inside the safe area, every character drawable
+  if (shot.problems.length) {
+    failed++;
+    console.log(`  LAYOUT   ${name}:\n    ${shot.problems.join('\n    ')}`);
+  }
   const file = join(GOLDEN, `${name}.png`);
   if (update) {
     writeFileSync(file, png(actual));

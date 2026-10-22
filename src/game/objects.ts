@@ -176,7 +176,7 @@ export class Exit extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     r.sprite(A.EXIT, A.DOOR_PAL, this.x - cx, this.y - cy);
-    if (this.open) r.text('▲', this.x + 4 - cx, this.y - 10 - cy + Math.round(Math.sin(clock.now() * 4) * 2), 'yellow');
+    if (this.open) r.marker('▲', this.x + 4 - cx, this.y - 10 - cy + Math.round(Math.sin(clock.now() * 4) * 2), 'yellow');
   }
 }
 

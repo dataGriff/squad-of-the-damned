@@ -3,7 +3,7 @@ import type { Renderer } from '../../engine/render';
 import type { InputState, KeyboardSource, TouchSource, Bindings } from '../../engine/input';
 import type { SaveStore } from '../../engine/save';
 import { audio } from '../../engine/audio';
-import type { Colour } from '../design/tokens';
+import type { PromptContext } from '../ui/prompt';
 
 export interface Scene {
   /** Transparent scenes let the scene beneath draw first (pause menus). */
@@ -27,6 +27,10 @@ export class Game {
     public bindings: Bindings,
   ) {}
 
+  /** What button prompts need: the device in use and the key bindings (#62). */
+  get prompts(): PromptContext {
+    return { device: this.input.device, bindings: this.bindings };
+  }
   get scene(): Scene | undefined {
     return this.stack[this.stack.length - 1];
   }
@@ -68,32 +72,4 @@ export class Game {
 
 function isTouch(): boolean {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-}
-
-/** A vertical text menu with a cursor. */
-export class Menu {
-  index = 0;
-  constructor(public items: string[], public onPick: (i: number) => void, public onBack?: () => void) {}
-  update(input: InputState): void {
-    if (input.pressed('down')) {
-      this.index = (this.index + 1) % this.items.length;
-      audio.play('menu');
-    }
-    if (input.pressed('up')) {
-      this.index = (this.index - 1 + this.items.length) % this.items.length;
-      audio.play('menu');
-    }
-    if (input.pressed('menu') || input.pressed('jump')) {
-      audio.play('confirm');
-      this.onPick(this.index);
-    } else if (input.pressed('pause') && this.onBack) this.onBack();
-  }
-  draw(r: Renderer, y: number, colour: Colour = 'text', dim: Colour = 'textDim', centered = true, x = 32): void {
-    this.items.forEach((item, i) => {
-      const sel = i === this.index;
-      const text = (sel ? '► ' : '  ') + item;
-      if (centered) r.textCentered(text, y + i * 12, sel ? colour : dim);
-      else r.text(text, x, y + i * 12, sel ? colour : dim);
-    });
-  }
 }

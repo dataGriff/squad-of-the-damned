@@ -11,6 +11,8 @@ import { BossMachine, type BossPhase } from './machine';
 import { WHITE } from '../enemies/base';
 import { SKULL, SKULL_PAL } from '../art/icons';
 import { rand } from '../../engine/random';
+import { HUD_H } from '../hud';
+import { write } from '../design/type';
 
 export abstract class Boss implements Damageable {
   kind = 'boss';
@@ -176,26 +178,28 @@ export abstract class Boss implements Damageable {
     // default ending: flicker out, skipping more frames as it goes (no alpha on a NES)
     const fading = scene === undefined && this.defeatTime > 1.5 ? (this.defeatTime - 1.5) * 2 : 0;
     if (!fading || Math.floor(this.defeatTime * 60) % 4 >= Math.ceil(fading * 4)) r.sprite(s, pal, x, y, this.dir > 0);
-    if (this.machine.stunTime > 0) r.text('* * *', x + this.sw / 2 - 20, y - 10, 'good');
-    else if (this.machine.telegraphing) r.text('!', x + this.sw / 2 - 4, y - 10, 'accent');
+    if (this.machine.stunTime > 0) r.marker('* * *', x + this.sw / 2 - 20, y - 10, 'good');
+    else if (this.machine.telegraphing) r.marker('!', x + this.sw / 2 - 4, y - 10, 'accent');
   }
 
   /** Boss HP bar under the HUD: a skull, a framed bar, gold while vulnerable (#58). */
   drawHud(r: Renderer): void {
     if (this.introTime > 0) {
       r.box(40, 92, SCREEN_W - 80, 24, 'panel');
-      r.headingCentered(this.name, 100, 'danger');
+      write(r, 'alert', this.name, SCREEN_W / 2, 100, { align: 'center' });
       return;
     }
     const w = 100;
     const x = (SCREEN_W - w) / 2;
-    r.sprite(SKULL, SKULL_PAL, x - 11, 19);
-    r.rect(x - 1, 19, w + 2, 7, 'panel');
-    r.rect(x - 1, 19, w + 2, 1, 'shade');
-    r.rect(x - 1, 25, w + 2, 1, 'edge');
-    r.rect(x + Math.round(w * this.machine.hpFraction), 21, w - Math.round(w * this.machine.hpFraction), 3, 'edge');
-    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 3, this.vulnerable ? 'accent' : 'danger');
-    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 1, this.vulnerable ? 'white' : 'pink');
+    const y = HUD_H + 3;
+    r.sprite(SKULL, SKULL_PAL, x - 11, y);
+    r.rect(x - 1, y, w + 2, 7, 'panel');
+    r.rect(x - 1, y, w + 2, 1, 'shade');
+    r.rect(x - 1, y + 6, w + 2, 1, 'edge');
+    const filled = Math.round(w * this.machine.hpFraction);
+    r.rect(x + filled, y + 2, w - filled, 3, 'edge');
+    r.rect(x, y + 2, filled, 3, this.vulnerable ? 'accent' : 'danger');
+    r.rect(x, y + 2, filled, 1, this.vulnerable ? 'white' : 'pink');
   }
 
 }

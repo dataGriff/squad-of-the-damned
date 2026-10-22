@@ -22,7 +22,7 @@ describe('Monster manual (#34, #36)', () => {
   });
 });
 
-import { wrap } from '../src/game/scenes/ui';
+import { wrap } from '../src/game/design/type';
 
 describe('Manual page text layout (#35)', () => {
   it('word-wraps every page to the 13-character column without splitting words', () => {

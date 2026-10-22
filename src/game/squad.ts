@@ -29,7 +29,7 @@ export const KIDS: Record<KidId, Kid> = {
     id: 'sling',
     name: 'CASEY',
     ability: 'slingshot',
-    blurb: 'SLINGSHOT. HOLD B TO CHARGE. SILVER SHOT IS LIMITED.',
+    blurb: 'SLINGSHOT. CHARGE IT UP. SILVER IS RARE.',
     palette: pal('darkBrown', 'red', 'cream'),
     w: 12,
     h: 22,
