@@ -141,16 +141,17 @@ const COUNT_FACE = [
 ];
 const COUNT_FACE_STUN = COUNT_FACE.map((r, i) => (i === 6 ? '1313333131' : i === 8 ? '.13311331.' : i === 9 ? '.13111131.' : r));
 
-function count(pose: 'idle' | 'breathe' | 'cape' | 'stun'): Sprite {
+function count(pose: 'idle' | 'breathe' | 'cape' | 'raise' | 'stun'): Sprite {
   const p = new PixelArt(24, 32);
   const lift = pose === 'breathe' ? 1 : 0;
-  if (pose === 'cape') {
-    // wings of the cape spread wide, red lining facing us, scalloped hem
+  if (pose === 'cape' || pose === 'raise') {
+    // wings of the cape spread wide (or half-raised), red lining facing us, scalloped hem
+    const half = pose === 'raise';
     for (const side of [-1, 1]) {
       const sx = side < 0 ? 9 : 14;
-      const ex = side < 0 ? 0 : 23;
-      p.tri(sx, 11, ex, 9, ex, 27, 2);
-      p.tri(sx, 11, ex, 27, sx, 29, 2);
+      const ex = side < 0 ? (half ? 4 : 0) : half ? 19 : 23;
+      p.tri(sx, 11, ex, half ? 6 : 9, ex, half ? 24 : 27, 2);
+      p.tri(sx, 11, ex, half ? 24 : 27, sx, 29, 2);
       for (let k = 0; k < 4; k++) {
         const hx = side < 0 ? 1 + k * 2 : 22 - k * 2;
         p.circle(hx, 27 + (k % 2), 1.2, 0);
@@ -185,7 +186,8 @@ function count(pose: 'idle' | 'breathe' | 'cape' | 'stun'): Sprite {
   p.rect(10, 26, 1, 5, 1).rect(13, 26, 1, 5, 1);
   // pale clawed hands at the opening
   if (pose !== 'cape') p.rect(8, 21, 1, 2, 3).rect(15, 21, 1, 2, 3);
-  else p.rect(1, 10, 2, 1, 3).rect(21, 10, 2, 1, 3);
+  else if (pose === 'cape') p.rect(1, 10, 2, 1, 3).rect(21, 10, 2, 1, 3);
+  else p.rect(4, 7, 2, 1, 3).rect(18, 7, 2, 1, 3);
   // head
   p.stamp(pose === 'stun' ? COUNT_FACE_STUN : COUNT_FACE, 7, 0 + lift);
   return sp(p, `vamp_${pose}`);
@@ -193,7 +195,9 @@ function count(pose: 'idle' | 'breathe' | 'cape' | 'stun'): Sprite {
 export const VAMPIRE: Record<string, AnimDef> = {
   idle: anim([count('idle'), count('breathe')], 2),
   cape: anim([count('cape')], 1),
+  raise: anim([count('raise')], 1),
   stun: anim([count('stun')], 1),
+  hit: anim([count('stun')], 1),
 };
 
 /* ================================================================== */
@@ -511,7 +515,166 @@ export function allMonsterSprites(): Sprite[] {
   };
   for (const a of [BAT, RAT, HAND, FROG]) a.frames.forEach(add);
   for (const b of Object.values(BOSS_ANIMS)) for (const a of Object.values(b)) a.frames.forEach(add);
+  allAnimationPassSprites().forEach(add);
   return out;
 }
 
 void mirrorX;
+
+
+/* ================================================================== */
+/* Animation pass (#53): wind-ups, hit reactions, defeat scenes         */
+/* ================================================================== */
+
+/** Crouch a figure: rows above `fromY` move down by `by` (the lowest `by` rows of the body fold away). */
+function squat(src: Sprite, fromY: number, by: number, name: string): Sprite {
+  const p = PixelArt.from(src);
+  const q = new PixelArt(p.w, p.h);
+  for (let y = 0; y < p.h; y++)
+    for (let x = 0; x < p.w; x++) {
+      const v = p.get(x, y);
+      if (!v) continue;
+      if (y >= fromY + by) q.set(x, y, v);
+      else if (y < fromY) q.set(x, y + by, v);
+    }
+  return q.toSprite(name);
+}
+
+/** Shift rows above `upTo` sideways by dx (a lean). */
+function lean(src: Sprite, upTo: number, dx: number, name: string): Sprite {
+  const p = PixelArt.from(src);
+  const q = new PixelArt(p.w, p.h);
+  for (let y = 0; y < p.h; y++)
+    for (let x = 0; x < p.w; x++) {
+      const v = p.get(x, y);
+      if (v) q.set(y < upTo ? x + dx : x, y, v);
+    }
+  return q.toSprite(name);
+}
+
+function flipV(src: Sprite, name: string): Sprite {
+  const p = PixelArt.from(src);
+  const q = new PixelArt(p.w, p.h);
+  for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) q.set(x, p.h - 1 - y, p.get(x, y));
+  return q.toSprite(name);
+}
+
+/** Lay a figure on its back at the bottom of the same canvas. */
+function laidDown(src: Sprite, name: string, turns = 3): Sprite {
+  const p = PixelArt.from(src);
+  const side = Math.max(p.w, p.h);
+  const r = p.centredIn(side).rotate90(turns);
+  const b = r.bounds();
+  const q = new PixelArt(p.w, p.h);
+  for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+    const v = r.get(b.x + x, b.y + y);
+    if (v) q.set(Math.floor((p.w - b.w) / 2) + x, p.h - b.h + y, v);
+  }
+  return q.toSprite(name);
+}
+
+// --- the Giant: heave the boulder overhead, then sit down at the end ---
+const GIANT_HEAVE = (() => {
+  // taller canvas: the boulder rides above his head between his raised fists
+  const body = PixelArt.from(GIANT.burn.frames[0]);
+  const p = new PixelArt(32, 62);
+  p.blit(body, 0, 10);
+  p.circle(16, 6, 7, 1);
+  p.circle(16, 6, 6, 2);
+  p.set(12, 3, 3).set(13, 2, 3).set(14, 2, 3).set(19, 9, 1).set(15, 8, 1).set(20, 4, 1);
+  return p.toSprite('giant_heave');
+})();
+const GIANT_SIT = (() => {
+  const src = PixelArt.from(GIANT.idle.frames[0]);
+  const p = new PixelArt(src.w, src.h);
+  for (let y = 0; y < 38; y++) for (let x = 0; x < src.w; x++) {
+    const v = src.get(x, y);
+    if (v) p.set(x, y + 10, v);
+  }
+  // legs stretched out in front (to the left), big boots up
+  p.rect(0, 44, 14, 6, 1).hline(0, 44, 14, 2);
+  p.rect(0, 40, 4, 10, 1).vline(1, 40, 10, 2);
+  // head bowed: eyes closed
+  for (let x = 11; x < 21; x++) if (p.get(x, 18) === 1) p.set(x, 18, 3);
+  return p.toSprite('giant_sit');
+})();
+GIANT.heave = anim([GIANT_HEAVE], 1);
+GIANT.hit = anim([GIANT.burn.frames[0]], 1);
+GIANT.sit = anim([GIANT_SIT], 1);
+
+// --- the Wolfman: crouch before the lunge, and Mr Grey underneath ---
+WOLFMAN.crouch = anim([squat(WOLFMAN.idle.frames[0], 22, 3, 'wolf_crouch')], 1);
+WOLFMAN.hit = anim([WOLFMAN.stun.frames[0]], 1);
+const MR_GREY = (() => {
+  const p = new PixelArt(32, 32);
+  // sitting on the ground, dazed, cap askew, satchel spilled
+  p.rect(6, 26, 14, 4, 1); // legs out front
+  p.rect(4, 28, 4, 4, 1);
+  p.rect(13, 14, 9, 13, 2); // uniform jacket
+  p.vline(17, 15, 11, 1);
+  p.set(18, 17, 3).set(18, 21, 3); // brass buttons
+  p.limb(14, 16, 9, 22, 2, 2).rect(8, 22, 2, 2, 3); // arm propped
+  p.limb(21, 16, 20, 7, 2, 2).rect(19, 5, 3, 3, 3); // hand on head
+  p.ellipse(16, 9, 4, 4.5, 3); // face
+  p.rect(12, 3, 9, 3, 2).rect(10, 5, 4, 1, 1); // cap with brim
+  p.set(14, 9, 1).set(15, 12, 1).set(16, 12, 1); // eye, mouth
+  p.rect(22, 22, 8, 7, 2).hline(22, 22, 8, 1); // satchel
+  p.set(25, 30, 3).set(28, 30, 3).set(27, 29, 3); // letters
+  rim(p, 2, 1);
+  rim(p, 3, 1);
+  p.ellipse(16, 9, 3, 3.5, 3);
+  p.set(14, 9, 1).set(15, 12, 1);
+  for (const [x, y] of [[9, 2], [24, 3], [22, 0]]) p.set(x, y, 3); // dizzy stars
+  return p.toSprite('wolf_mrgrey');
+})();
+WOLFMAN.human = anim([MR_GREY], 1);
+
+// --- the Mummy: pull back before the grapple, unravel at the end ---
+MUMMY.windup = anim([lean(MUMMY.idle.frames[0], 22, 3, 'mummy_windup')], 1);
+MUMMY.hit = anim(
+  [
+    (() => {
+      const p = PixelArt.from(MUMMY.idle.frames[0]);
+      p.rect(9, 5, 7, 2, 1); // eyes squeezed shut
+      return lean(p.toSprite('mummy_hit_src'), 22, 1, 'mummy_hit');
+    })(),
+  ],
+  1,
+);
+const UNRAVEL: Sprite[] = [0, 1, 2, 3, 4, 5].map((k) => {
+  const src = PixelArt.from(MUMMY.idle.frames[0]);
+  const p = new PixelArt(src.w, src.h);
+  const cut = k * 6; // body gone above this row
+  for (let y = cut; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    const v = src.get(x, y);
+    if (v) p.set(x, y, v);
+  }
+  // the loose strip peeling off and fluttering down to the pile
+  if (k < 5) for (let y = Math.max(0, cut - 6); y < 30; y++) p.set(13 + Math.round(Math.sin(y / 2 + k) * 3), y, y % 3 ? 3 : 2);
+  // pile of bandages growing at the feet
+  p.ellipse(12, 31, 3 + k * 1.6, 1 + k * 0.5, 3);
+  for (let x = 6; x < 20; x += 3) if (p.get(x, 31)) p.set(x, 31, 2);
+  if (k === 5) p.set(11, 29, 1).set(13, 29, 1); // two tiny eyes in the heap
+  return p.toSprite(`mummy_unravel_${k}`);
+});
+MUMMY.unravel = anim(UNRAVEL, 4, false);
+
+// --- the Gill Creature: coil before leaping, flop on its back at the end ---
+GILL.coil = anim([squat(GILL.idle.frames[0], 22, 3, 'gill_coil')], 1);
+GILL.hit = anim([GILL.gasp.frames[0]], 1);
+GILL.flop = anim([laidDown(GILL.gasp.frames[0], 'gill_flop_0', 1), laidDown(GILL.idle.frames[0], 'gill_flop_1', 1)], 3);
+
+// --- fodder deaths ---
+export const BAT_DEAD = flipV(BAT.frames[1], 'bat_dead');
+export const RAT_DEAD = flipV(RAT.frames[0], 'rat_dead');
+export const FROG_SQUASH = (() => {
+  const p = new PixelArt(16, 11);
+  p.ellipse(8, 9, 8, 2, 2);
+  p.set(3, 8, 3).set(12, 8, 3).hline(5, 9, 6, 1);
+  rim(p, 2, 1);
+  return p.toSprite('frog_squash');
+})();
+
+export function allAnimationPassSprites(): Sprite[] {
+  return [GIANT_HEAVE, GIANT_SIT, MR_GREY, ...UNRAVEL, BAT_DEAD, RAT_DEAD, FROG_SQUASH, WOLFMAN.crouch.frames[0], MUMMY.windup.frames[0], MUMMY.hit.frames[0], GILL.coil.frames[0], ...GILL.flop.frames];
+}

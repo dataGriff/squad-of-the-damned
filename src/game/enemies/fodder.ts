@@ -1,11 +1,14 @@
 /** Fodder set (#21): bats, rats, zombie hands, bog frogs. */
 import { applyGravity, stepBody } from '../../engine/physics';
-import { BAT, BAT_PAL, FROG, FROG_PAL, HAND, HAND_PAL, RAT, RAT_PAL } from '../art/monsters';
+import { BAT, BAT_DEAD, BAT_PAL, FROG, FROG_PAL, FROG_SQUASH, HAND, HAND_PAL, RAT, RAT_DEAD, RAT_PAL } from '../art/monsters';
 import { Enemy } from './base';
 import type { World } from '../world';
 import type { Renderer } from '../../engine/render';
 
 export class Bat extends Enemy {
+  protected corpse() {
+    return { sprite: BAT_DEAD, vx: 20, vy: -30, gravity: 500, life: 0.9 };
+  }
   private t = Math.random() * 6;
   private swoop = 0;
   constructor(x: number, y: number) {
@@ -41,6 +44,9 @@ export class Bat extends Enemy {
 }
 
 export class Rat extends Enemy {
+  protected corpse() {
+    return { sprite: RAT_DEAD, vx: 30, vy: -110, gravity: 600, life: 0.8 };
+  }
   constructor(x: number, y: number) {
     super(x, y, { w: 14, h: 6, hp: 1, speed: 70, aggroRange: 70, colour: '#7c7c7c', anims: { run: RAT }, pal: RAT_PAL });
   }
@@ -53,6 +59,9 @@ export class Rat extends Enemy {
 
 /** Zombie hand: hidden until the player is close, then pops up and grabs. */
 export class ZombieHand extends Enemy {
+  protected corpse() {
+    return { sprite: HAND.frames[2], vx: 0, vy: 0, gravity: 0, life: 0.5 };
+  }
   private state: 'hidden' | 'rising' | 'up' | 'sinking' = 'hidden';
   private timer = 0;
   constructor(x: number, y: number) {
@@ -102,6 +111,9 @@ export class ZombieHand extends Enemy {
 
 /** Bog frog: hops toward the player; can't turn mid-air. */
 export class BogFrog extends Enemy {
+  protected corpse() {
+    return { sprite: FROG_SQUASH, vx: 0, vy: 0, gravity: 0, life: 0.6 };
+  }
   private wait = 0.8;
   constructor(x: number, y: number) {
     super(x, y, { w: 14, h: 8, hp: 2, speed: 60, aggroRange: 100, colour: '#b8f818', anims: { hop: FROG }, pal: FROG_PAL });

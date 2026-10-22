@@ -1,7 +1,7 @@
 /** Shared boss entity: body, animation, machine, weakness gating (#36), HP bar. */
 import { applyGravity, makeBody, overlaps, stepBody, type Body } from '../../engine/physics';
 import type { Renderer } from '../../engine/render';
-import { Animator, type AnimDef } from '../../engine/sprites';
+import { Animator, type AnimDef, type Sprite } from '../../engine/sprites';
 import { audio } from '../../engine/audio';
 import { SCREEN_W } from '../../engine/constants';
 import type { SpritePalette } from '../palette';
@@ -28,6 +28,11 @@ export abstract class Boss implements Damageable {
   abstract weakness: Weakness;
   arenaX = 0;
   arenaW = SCREEN_W;
+  /** state -> [wind-up animation, main animation]; swapped automatically around telegraphs. */
+  protected windups: Record<string, [string, string]> = {};
+  /** Seconds left on the hit-reaction frame. */
+  hitReact = 0;
+  protected defeatLength = 2;
 
   constructor(x: number, y: number, w: number, h: number, anims: Record<string, AnimDef>, public pal: SpritePalette, public sw: number, public sh: number) {
     this.body = makeBody(x, y, w, h);
@@ -67,6 +72,7 @@ export abstract class Boss implements Damageable {
     if (dmg > 0) {
       audio.play('bossHit');
       this.flashTime = 0.12;
+      this.hitReact = 0.2;
       world.camera.shake(2, 0.12);
       world.particles.burst(this.centerX, this.centerY, '#fcfcfc', 6, 70);
       const phaseChanged = this.machine.damage(dmg);
@@ -93,6 +99,18 @@ export abstract class Boss implements Damageable {
     this.hostile = false;
     audio.play('bossDie');
     world.camera.shake(5, 0.6);
+    this.onDefeatStart(world);
+  }
+
+  /** Hook for a boss's defeat scene (spawn effects, change animation). */
+  protected onDefeatStart(_world: World): void {}
+
+  /**
+   * The frame to show at `t` seconds into the defeat: a sprite, null to hide,
+   * or undefined for the default flash-and-flicker.
+   */
+  protected defeatSprite(_t: number): Sprite | null | undefined {
+    return undefined;
   }
 
   update(world: World, dt: number): void {
@@ -104,14 +122,19 @@ export abstract class Boss implements Damageable {
     }
     if (this.defeatTime >= 0) {
       this.defeatTime += dt;
-      if (Math.random() < 0.4) world.particles.burst(this.body.x + Math.random() * this.body.w, this.body.y + Math.random() * this.body.h, '#fcfcfc', 2, 50);
-      if (this.defeatTime > 2) {
+      this.anim.update(dt);
+      if (this.defeatSprite(this.defeatTime) === undefined && Math.random() < 0.4)
+        world.particles.burst(this.body.x + Math.random() * this.body.w, this.body.y + Math.random() * this.body.h, '#fcfcfc', 2, 50);
+      if (this.defeatTime > this.defeatLength) {
         this.dead = true;
         world.events.onBossDefeated(this.id);
       }
       return;
     }
+    if (this.hitReact > 0) this.hitReact -= dt;
     this.machine.update(dt);
+    const w = this.windups[this.machine.state];
+    if (w && w[0] in this.anim.anims) this.anim.play(this.machine.telegraphing ? w[0] : w[1]);
     this.anim.update(dt);
     this.contact(world);
   }
@@ -138,14 +161,18 @@ export abstract class Boss implements Damageable {
 
   draw(r: Renderer, cx: number, cy: number, alpha: number): void {
     const b = this.body;
-    const s = this.anim.sprite;
-    const x = b.px + (b.x - b.px) * alpha - cx + b.w / 2 - this.sw / 2;
+    const scene = this.defeatTime >= 0 ? this.defeatSprite(this.defeatTime) : undefined;
+    if (scene === null) return;
+    const hit = this.hitReact > 0 && this.defeatTime < 0 && 'hit' in this.anim.anims ? this.anim.anims.hit.frames[0] : null;
+    const s = scene ?? hit ?? this.anim.sprite;
+    const recoil = hit ? -this.dir * 2 : 0;
+    const x = b.px + (b.x - b.px) * alpha - cx + b.w / 2 - this.sw / 2 + recoil;
     const y = b.py + (b.y - b.py) * alpha - cy + b.h - s.h;
     let pal: SpritePalette = this.pal;
     if (this.flashTime > 0) pal = WHITE;
-    else if (this.defeatTime >= 0 && Math.floor(this.defeatTime * 12) % 2 === 0) pal = WHITE;
-    // final half-second: flicker out, skipping more frames as it goes (no alpha on a NES)
-    const fading = this.defeatTime > 1.5 ? (this.defeatTime - 1.5) * 2 : 0;
+    else if (this.defeatTime >= 0 && (scene === undefined || this.defeatTime < 0.25) && Math.floor(this.defeatTime * 12) % 2 === 0) pal = WHITE;
+    // default ending: flicker out, skipping more frames as it goes (no alpha on a NES)
+    const fading = scene === undefined && this.defeatTime > 1.5 ? (this.defeatTime - 1.5) * 2 : 0;
     if (!fading || Math.floor(this.defeatTime * 60) % 4 >= Math.ceil(fading * 4)) r.sprite(s, pal, x, y, this.dir > 0);
     if (this.machine.stunTime > 0) r.text('* * *', x + this.sw / 2 - 20, y - 10, '#b8f8d8');
     else if (this.machine.telegraphing) r.text('!', x + this.sw / 2 - 4, y - 10, '#f8d878');

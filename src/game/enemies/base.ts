@@ -1,7 +1,8 @@
 /** Enemy base class (#20): patrol, edge-turn, aggro range, HP, stun, death particles. */
 import { applyGravity, groundAhead, makeBody, overlaps, stepBody, wallAhead, type Body } from '../../engine/physics';
 import type { Renderer } from '../../engine/render';
-import { Animator, type AnimDef } from '../../engine/sprites';
+import { Animator, type AnimDef, type Sprite } from '../../engine/sprites';
+import { Corpse } from '../effects';
 import { audio } from '../../engine/audio';
 import type { SpritePalette } from '../palette';
 import type { Damageable, World } from '../world';
@@ -65,7 +66,18 @@ export class Enemy implements Damageable {
   }
   die(world: World): void {
     this.dead = true;
-    world.particles.burst(this.centerX, this.centerY, this.opts.colour, 10, 90);
+    world.particles.burst(this.centerX, this.centerY, this.opts.colour, 6, 70);
+    const c = this.corpse();
+    if (c) {
+      const x = this.body.x + this.body.w / 2 - c.sprite.w / 2;
+      const y = this.body.y + this.body.h - c.sprite.h;
+      world.add(new Corpse(c.sprite, this.opts.pal, x, y, c.vx * -this.dir, c.vy, c.gravity, c.life, this.dir > 0));
+    }
+  }
+
+  /** Per-type death animation (#53): a sprite that tumbles and blinks out. */
+  protected corpse(): { sprite: Sprite; vx: number; vy: number; gravity: number; life: number } | null {
+    return null;
   }
 
   /** Distance to the player; aggro when within range on the same rough height. */
@@ -116,7 +128,9 @@ export class Enemy implements Damageable {
   draw(r: Renderer, cx: number, cy: number, alpha: number): void {
     const b = this.body;
     const s = this.anim.sprite;
-    const x = b.px + (b.x - b.px) * alpha - cx + b.w / 2 - s.w / 2;
+    // hurt: white flash plus a one-pixel recoil
+    const recoil = this.flashTime > 0 ? -this.dir : 0;
+    const x = b.px + (b.x - b.px) * alpha - cx + b.w / 2 - s.w / 2 + recoil;
     const y = b.py + (b.y - b.py) * alpha - cy + b.h - s.h;
     const pal = this.flashTime > 0 ? WHITE : this.opts.pal;
     r.sprite(s, pal, x, y, this.dir > 0);

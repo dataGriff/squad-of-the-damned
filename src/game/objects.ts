@@ -5,6 +5,7 @@ import { Animator } from '../engine/sprites';
 import { audio } from '../engine/audio';
 import { TILE } from '../engine/constants';
 import * as A from './art/items';
+import { drawGlint } from './effects';
 import type { Entity, World } from './world';
 import type { MapObject } from '../engine/tilemap';
 
@@ -37,6 +38,7 @@ export class PagePickup extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     r.sprite(this.anim.sprite, A.PAGE_PAL, this.x - cx, this.y - 2 - cy);
+    drawGlint(r, this.x + 10 - cx, this.y - cy, this.x);
   }
 }
 
@@ -127,6 +129,7 @@ export class SilverPickup extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     r.sprite(this.anim.sprite, A.SILVER_PAL, this.x - cx, this.y - cy);
+    drawGlint(r, this.x + 7 - cx, this.y + 1 - cy, this.x);
   }
 }
 
@@ -144,6 +147,7 @@ export class HeartPickup extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     r.sprite(A.HEART, A.HEART_PAL, this.x - cx, this.y - cy + Math.round(Math.sin(performance.now() / 200)));
+    drawGlint(r, this.x + 2 - cx, this.y + 1 - cy, this.x);
   }
 }
 

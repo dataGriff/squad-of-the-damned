@@ -10,6 +10,8 @@ import type { BossPhase } from './machine';
 import type { World } from '../world';
 import type { Weakness } from '../manual';
 import { Bat } from '../enemies/fodder';
+import { BatBurst } from '../effects';
+import type { Sprite } from '../../engine/sprites';
 import { Boulder, Bubble } from '../projectiles';
 import type { Lantern, Sluice, Valve } from '../objects';
 
@@ -170,6 +172,15 @@ export class VampireCount extends Boss {
     ];
     this.init(phases, 6);
     this.targetX = x;
+    this.windups = { swoop: ['raise', 'cape'], reform: ['raise', 'idle'] };
+  }
+  /** Defeat: he bursts into a cloud of bats that flee into the night. */
+  protected onDefeatStart(world: World): void {
+    world.add(new BatBurst(this.centerX, this.centerY, 12));
+    audio.play('howl');
+  }
+  protected defeatSprite(t: number): Sprite | null | undefined {
+    return t < 0.3 ? this.anim.anims.stun.frames[0] : null;
   }
   world: World | null = null;
   move(dt: number): void {
@@ -260,6 +271,12 @@ export class StitchedGiant extends Boss {
       ],
       6,
     );
+    this.windups = { throw: ['heave', 'throw'] };
+    this.defeatLength = 2.8;
+  }
+  /** Defeat: he stops, staggers, and sits down. */
+  protected defeatSprite(t: number): Sprite | null | undefined {
+    return t < 0.5 ? this.anim.anims.hit.frames[0] : this.anim.anims.sit.frames[0];
   }
   world: World | null = null;
   update(world: World, dt: number): void {
@@ -285,14 +302,8 @@ export class StitchedGiant extends Boss {
     world.save.save();
   }
   draw(r: Renderer, cx: number, cy: number, alpha: number): void {
-    if (this.redeemed && this.defeatTime >= 0) {
-      const b = this.body;
-      r.ctx.globalAlpha = 1;
-      r.sprite(GIANT.idle.frames[0], GIANT_PAL, b.x - cx + b.w / 2 - 16, b.y - cy + b.h - 52, this.dir > 0);
-      if (this.defeatTime > 0.6) r.textCentered('...HE JUST WANTED A FRIEND.', 60, '#fcfcfc');
-      return;
-    }
     super.draw(r, cx, cy, alpha);
+    if (this.redeemed && this.defeatTime > 0.8) r.textShadow('...HE JUST WANTED A FRIEND.', 20, 60, '#fcfcfc');
   }
 }
 
@@ -329,13 +340,11 @@ export class Wolfman extends Boss {
         telegraph: 0.55,
         enter() {
           self.lunges++;
-          self.anim.play('idle');
           self.facePlayer(self.world!);
         },
         update(c, m, dt) {
           if (m.telegraphing) {
             c.walk(c.world!, dt, 0);
-            if (m.stateTime > 0.3) c.anim.play('lunge');
             return;
           }
           c.walk(c.world!, dt, c.dir * lungeSpeed);
@@ -376,6 +385,15 @@ export class Wolfman extends Boss {
       ],
       6,
     );
+    this.windups = { lunge: ['crouch', 'lunge'] };
+    this.defeatLength = 2.8;
+  }
+  /** Defeat: he flickers between wolf and man, and Mr Grey the postman sits up, dazed. */
+  protected defeatSprite(t: number): Sprite | null | undefined {
+    const a = this.anim.anims;
+    if (t < 0.4) return a.hit.frames[0];
+    if (t < 1.4) return Math.floor(t * (6 + t * 6)) % 2 ? a.human.frames[0] : a.idle.frames[0];
+    return a.human.frames[0];
   }
   world: World | null = null;
   update(world: World, dt: number): void {
@@ -473,6 +491,14 @@ export class Mummy extends Boss {
       ],
       6,
     );
+    this.windups = { grapple: ['windup', 'grapple'] };
+    this.defeatLength = 2.6;
+  }
+  /** Defeat: the bandages unwind from the top down into a heap with two little eyes. */
+  protected defeatSprite(t: number): Sprite | null | undefined {
+    const a = this.anim.anims;
+    if (t < 0.3) return a.hit.frames[0];
+    return a.unravel.frames[Math.min(a.unravel.frames.length - 1, Math.floor((t - 0.3) / 0.28))];
   }
   world: World | null = null;
   update(world: World, dt: number): void {
@@ -638,6 +664,14 @@ export class GillCreature extends Boss {
       ],
       6,
     );
+    this.windups = { leap: ['coil', 'attack'], spit: ['coil', 'attack'] };
+    this.defeatLength = 2.6;
+  }
+  /** Defeat: beached, he flops onto his back and gasps. */
+  protected defeatSprite(t: number): Sprite | null | undefined {
+    const a = this.anim.anims;
+    if (t < 0.3) return a.hit.frames[0];
+    return a.flop.frames[Math.floor(t * 3) % a.flop.frames.length];
   }
   world: World | null = null;
   /** Swim along the water surface toward (or away from) the player. */
