@@ -27,6 +27,8 @@ import { SONGS } from '../music';
 import { drawHud } from '../hud';
 import { PAGE_BY_ID } from '../manual';
 import { GameOverScene, HubScene, PauseScene, WinScene } from './ui';
+import { StoryScene } from './story';
+import { CHAPTERS, afterChapter } from '../story';
 
 export interface NightOpts {
   demo?: boolean;
@@ -266,8 +268,13 @@ export class NightScene implements Scene {
         this.world.update(dt);
         this.camera.update(this.player.centerX, this.player.centerY, this.player.facing, dt);
         if (this.stateT > 3.5) {
-          if (this.night) this.quitToHub();
-          else this.game.replace(new WinScene(this.game));
+          // the after-night chapter (or the ending) plays once (#57)
+          const ch = afterChapter(this.night ? this.night.number : null);
+          const next = () => (this.night ? this.quitToHub() : this.game.replace(new WinScene(this.game)));
+          if (ch && !this.game.save.data.storySeen.includes(ch)) {
+            this.game.save.data.silver = this.squad.silver;
+            this.game.replace(new StoryScene(this.game, [CHAPTERS[ch]], next));
+          } else next();
         }
         return;
       case 'midnight':

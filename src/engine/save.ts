@@ -26,9 +26,11 @@ export interface SaveData {
   deaths: { night: string; x: number; y: number }[];
   giantAlly: boolean;
   gameComplete: boolean;
+  /** Story chapters already shown (#57), so each plays once per save. */
+  storySeen: string[];
 }
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const SAVE_KEY = 'squad-of-the-damned';
 
 export const DEFAULT_OPTIONS: Options = {
@@ -52,6 +54,7 @@ export function defaultSave(): SaveData {
     deaths: [],
     giantAlly: false,
     gameComplete: false,
+    storySeen: [],
   };
 }
 
@@ -72,6 +75,11 @@ export function migrate(raw: unknown): SaveData {
     data = { ...data, deaths: [], giantAlly: false, gameComplete: false };
     v = 2;
   }
+  if (v < 3) {
+    // v2 had no story screens; anyone with progress has effectively seen the intro
+    data = { ...data, storySeen: (data.nightsCleared ?? []).length ? ['intro'] : [] };
+    v = 3;
+  }
   return {
     ...base,
     ...data,
@@ -79,6 +87,7 @@ export function migrate(raw: unknown): SaveData {
     options: { ...base.options, ...(data.options ?? {}) },
     nightsCleared: [...new Set(data.nightsCleared ?? [])],
     pages: [...new Set(data.pages ?? [])],
+    storySeen: [...new Set(data.storySeen ?? [])],
   };
 }
 

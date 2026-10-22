@@ -18,6 +18,8 @@ import { cycled, cycleList } from '../palette';
 const WINDOW_FLICKER = cycleList(['yellow', 'yellow', 'sand', 'yellow', 'amber', 'yellow']);
 import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, ROPE_LADDER, ROPE_PAL, TREEHOUSE, TREEHOUSE_PAL } from '../art/scenery';
 import { NightScene } from './night';
+import { StoryScene } from './story';
+import { CHAPTERS, beforeChapter, storySoFar } from '../story';
 
 const GREY: readonly [null, string, string, string] = [null, '#3c3c3c', '#3c3c3c', '#3c3c3c'];
 
@@ -137,11 +139,14 @@ export class HubScene implements Scene {
   private nightMenu: Menu;
   private t = 0;
   constructor(private game: Game) {
-    this.menu = new Menu(['PICK A NIGHT', 'THE SQUAD', 'MONSTER MANUAL', 'OPTIONS', 'TITLE SCREEN'], (i) => {
+    this.menu = new Menu(['PICK A NIGHT', 'THE SQUAD', 'MONSTER MANUAL', 'STORY SO FAR', 'OPTIONS', 'TITLE SCREEN'], (i) => {
       if (i === 0) this.mode = 'nights';
       else if (i === 1) this.mode = 'squad';
       else if (i === 2) game.push(new ManualScene(game));
-      else if (i === 3) game.push(new OptionsScene(game));
+      else if (i === 3) {
+        const seen = storySoFar(game.save.data.storySeen);
+        game.replace(new StoryScene(game, seen.length ? seen : [CHAPTERS.intro], () => game.replace(new HubScene(game))));
+      } else if (i === 4) game.push(new OptionsScene(game));
       else game.replace(new TitleScene(game));
     });
     this.nightMenu = new Menu([], (i) => this.pickNight(i), () => (this.mode = 'main'));
@@ -155,14 +160,22 @@ export class HubScene implements Scene {
     items.push('  BACK');
     this.nightMenu.items = items;
   }
+  /** Start a night, playing its story chapter first if it hasn't been seen (#57). */
+  private startNight(night: (typeof NIGHTS)[number] | null): void {
+    const game = this.game;
+    const go = () => game.replace(new NightScene(game, night));
+    const ch = beforeChapter(night ? night.number : null);
+    if (ch && !game.save.data.storySeen.includes(ch)) game.replace(new StoryScene(game, [CHAPTERS[ch]], go));
+    else go();
+  }
   private pickNight(i: number): void {
     if (i < NIGHTS.length) {
-      this.game.replace(new NightScene(this.game, NIGHTS[i]));
+      this.startNight(NIGHTS[i]);
       return;
     }
     if (i === NIGHTS.length) {
       const allClear = NIGHTS.every((n) => this.game.save.data.nightsCleared.includes(n.number));
-      if (allClear) this.game.replace(new NightScene(this.game, null));
+      if (allClear) this.startNight(null);
       else audio.play('tick');
       return;
     }
@@ -210,8 +223,8 @@ export class HubScene implements Scene {
         const s = kidFrame(id, 'idle', this.t, i);
         r.sprite(s, KIDS[id].palette, 76 + i * 28, 92 - s.h, i > 1);
       });
-      r.box(SCREEN_W / 2 - 76, 136, 152, 72, '#000000');
-      this.menu.draw(r, 144);
+      r.box(SCREEN_W / 2 - 76, 128, 152, 84, '#000000');
+      this.menu.draw(r, 136);
     } else if (this.mode === 'nights') {
       r.box(4, 100, SCREEN_W - 8, 120, '#000000');
       this.nightMenu.draw(r, 108, '#fcfcfc', '#7c7c7c', false, 12);

@@ -622,7 +622,7 @@ function rain(name: string, frame: number): Sprite {
 /* ------------------------------------------------------------------ */
 
 const MOON = moonSprite('bd_moon', 15);
-const BIG_MOON = moonSprite('bd_moon_big', 22);
+export const BIG_MOON = moonSprite('bd_moon_big', 22);
 const HALO = haloSprite('bd_halo', 34);
 const BIG_HALO = haloSprite('bd_halo_big', 48);
 const STARS = starField('bd_stars', 120, 11);
