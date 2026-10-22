@@ -39,7 +39,6 @@ export class Player implements IPlayer {
   holdToJump = false;
   reducedFlash = false;
   private wasOnGround = true;
-  private lastVy = 0;
 
   constructor(x: number, y: number, kid: Kid) {
     this.kidId = kid.id;
@@ -245,6 +244,7 @@ export class Player implements IPlayer {
       } else if (this.jumpsLeft > 0 && input.pressed('jump')) {
         this.jumpsLeft--;
         this.doJump(world, kid.jump * 0.9);
+        this.flipTime = 0.28;
         world.particles.dust(this.centerX, b.y + b.h, 0, '#f8d878');
       }
     }
@@ -268,11 +268,11 @@ export class Player implements IPlayer {
     if (b.onGround && !this.wasOnGround && vyBefore > 120) {
       audio.play('land');
       world.particles.dust(this.centerX, b.y + b.h, 0);
-      this.landSquash = 0.12;
+      this.landTime = 0.1;
     }
-    if (this.landSquash > 0) this.landSquash -= dt;
+    if (this.landTime > 0) this.landTime -= dt;
+    if (this.flipTime > 0) this.flipTime -= dt;
     this.wasOnGround = b.onGround;
-    this.lastVy = b.vy;
 
     // --- hazards ---
     if (map.rectHas(b.x + 2, b.y + b.h - 4, b.w - 4, 4, 'spike')) this.hurt(world, this.centerX - this.facing * 10);
@@ -299,7 +299,8 @@ export class Player implements IPlayer {
     this.anim.update(dt);
   }
 
-  private landSquash = 0;
+  private landTime = 0;
+  private flipTime = 0;
 
   private startClimb(b: Body): void {
     this.climbing = true;
@@ -394,11 +395,15 @@ export class Player implements IPlayer {
 
   private pickAnim(stunned: boolean, ax: number): void {
     const b = this.body;
+    const has = (n: string) => n in this.anim.anims;
     if (stunned) return this.anim.play('hurt');
-    if (this.abilityAnim > 0) return this.anim.play(this.anim.current === 'ability' ? 'ability' : 'ability');
-    if (this.crouching) return this.anim.play('crouch');
-    if (this.pushing && this.anim.anims.push) return this.anim.play('push');
-    if (!b.onGround) return this.anim.play(b.vy < 0 ? 'jump' : 'fall');
+    if (this.abilityAnim > 0) return this.anim.play('ability');
+    if (this.charge > 0.08 && has('aim')) return this.anim.play('aim');
+    if (this.flipTime > 0 && has('flip') && !b.onGround) return this.anim.play('flip');
+    if (this.crouching) return this.anim.play(ax !== 0 ? 'crawl' : 'crouch');
+    if (this.pushing && has('push')) return this.anim.play('push');
+    if (!b.onGround) return this.anim.play(b.vy < -70 ? 'jump' : b.vy < 70 ? 'apex' : 'fall');
+    if (this.landTime > 0) return this.anim.play('land');
     if (ax !== 0) return this.anim.play('run');
     this.anim.play('idle');
   }
@@ -418,17 +423,7 @@ export class Player implements IPlayer {
     const sx = x + b.w / 2 - sheet.w / 2;
     const sy = y + b.h - sprite.h;
     const pal = (this.worldRef?.squad.swapFlash ?? 0) > 0 ? FLASH_PAL : (this.worldRef?.squad.kid.palette ?? FLASH_PAL);
-    if (this.landSquash > 0 || this.lastVy < -200) {
-      // squash/stretch (#9): draw scaled around the feet
-      const sq = this.landSquash > 0 ? 0.8 : 1.1;
-      const ctx = r.ctx;
-      ctx.save();
-      ctx.translate(Math.round(x + b.w / 2), Math.round(y + b.h));
-      ctx.scale(this.facing < 0 ? -1 / sq : 1 / sq, sq);
-      ctx.drawImage(r.atlas.get(sprite, pal, false), -Math.round(sheet.w / 2), -sprite.h);
-      ctx.restore();
-      return;
-    }
+    // squash and stretch (#9) are drawn as dedicated land/jump frames, so pixels stay square
     r.sprite(sprite, pal, sx, sy, this.facing < 0);
   }
 

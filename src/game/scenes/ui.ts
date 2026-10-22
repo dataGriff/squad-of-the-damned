@@ -6,7 +6,7 @@ import { audio } from '../../engine/audio';
 import { Game, Menu, type Scene } from './scene';
 import { SONGS } from '../music';
 import { MANUAL_PAGES, pagesFound } from '../manual';
-import { KIDS, KID_ORDER } from '../squad';
+import { KIDS, KID_ORDER, type KidId } from '../squad';
 import { KID_SHEETS } from '../art/kids';
 import { NIGHTS } from '../levels/nights';
 import { tileSprite } from '../art/tiles';
@@ -75,7 +75,7 @@ export class TitleScene implements Scene {
     }
     // the squad standing on the ground
     KID_ORDER.forEach((id, i) => {
-      const s = KID_SHEETS[id].anims.idle.frames[Math.floor(this.t * 2 + i) % 2];
+      const s = kidFrame(id, 'idle', this.t, i);
       r.sprite(s, KIDS[id].palette, 84 + i * 24, 208 - s.h, false);
     });
     // logo: a dithered dark band behind it, then the small line and the big dripping title
@@ -202,7 +202,7 @@ export class HubScene implements Scene {
     r.textShadow(`SILVER ${this.game.save.data.silver}`, 160, 228, '#fcfcfc');
     if (this.mode === 'main') {
       KID_ORDER.forEach((id, i) => {
-        const s = KID_SHEETS[id].anims.idle.frames[Math.floor(this.t * 2 + i) % 2];
+        const s = kidFrame(id, 'idle', this.t, i);
         r.sprite(s, KIDS[id].palette, 76 + i * 28, 92 - s.h, i > 1);
       });
       r.box(SCREEN_W / 2 - 76, 136, 152, 72, '#000000');
@@ -429,6 +429,12 @@ export class ManualScene implements Scene {
   }
 }
 
+/** The frame of a kid animation at time t, offset per kid so the squad isn't in lockstep. */
+function kidFrame(id: KidId, name: string, t: number, i: number) {
+  const a = KID_SHEETS[id].anims[name];
+  return a.frames[Math.floor(t * a.fps + i * 3) % a.frames.length];
+}
+
 /** Word-wrap to lines of at most `width` characters. */
 export function wrap(text: string, width: number): string[] {
   const out: string[] = [];
@@ -529,7 +535,7 @@ export class WinScene implements Scene {
       if (y > 20 && y < SCREEN_H - 30) r.textCentered(l, y, i === 9 ? '#e40058' : '#fcfcfc');
     });
     KID_ORDER.forEach((id, i) => {
-      const s = KID_SHEETS[id].anims.run.frames[Math.floor(this.t * 8 + i) % 4];
+      const s = kidFrame(id, 'run', this.t, i);
       r.sprite(s, KIDS[id].palette, 60 + i * 36 + Math.sin(this.t + i) * 4, SCREEN_H - 16 - s.h);
     });
   }

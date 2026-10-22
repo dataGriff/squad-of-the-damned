@@ -184,6 +184,17 @@ export class PixelArt {
       }
     return this;
   }
+  /** Like outline(), but only around pixels whose colour is in `of` (keeps dark parts slim). */
+  outlineOf(c: number, of: number[]): this {
+    const src = this.px.slice();
+    const isSrc = (x: number, y: number) => x >= 0 && y >= 0 && x < this.w && y < this.h && of.includes(src[y * this.w + x]);
+    for (let y = 0; y < this.h; y++)
+      for (let x = 0; x < this.w; x++) {
+        if (src[y * this.w + x]) continue;
+        if (isSrc(x - 1, y) || isSrc(x + 1, y) || isSrc(x, y - 1) || isSrc(x, y + 1)) this.px[y * this.w + x] = c;
+      }
+    return this;
+  }
   /** Replace every pixel of colour a with b. */
   swap(a: number, b: number): this {
     for (let i = 0; i < this.px.length; i++) if (this.px[i] === a) this.px[i] = b;
@@ -196,6 +207,50 @@ export class PixelArt {
         const v = src.px[yy * src.w + (flip ? src.w - 1 - xx : xx)];
         if (v) this.set(x + xx, y + yy, v);
       }
+    return this;
+  }
+  /** Bounding box of opaque pixels. */
+  bounds(): { x: number; y: number; w: number; h: number } {
+    let x0 = this.w, y0 = this.h, x1 = -1, y1 = -1;
+    for (let y = 0; y < this.h; y++)
+      for (let x = 0; x < this.w; x++)
+        if (this.px[y * this.w + x]) {
+          x0 = Math.min(x0, x);
+          y0 = Math.min(y0, y);
+          x1 = Math.max(x1, x);
+          y1 = Math.max(y1, y);
+        }
+    return x1 < 0 ? { x: 0, y: 0, w: 0, h: 0 } : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
+  /** Copy of the opaque area centred in a square canvas of side `size`. */
+  centredIn(size: number): PixelArt {
+    const b = this.bounds();
+    const q = new PixelArt(size, size);
+    for (let y = 0; y < b.h; y++)
+      for (let x = 0; x < b.w; x++) {
+        const v = this.px[(b.y + y) * this.w + b.x + x];
+        if (v) q.set(Math.floor((size - b.w) / 2) + x, Math.floor((size - b.h) / 2) + y, v);
+      }
+    return q;
+  }
+  /** Rotate 90° clockwise `turns` times (pixel-perfect, square canvases keep their size). */
+  rotate90(turns = 1): PixelArt {
+    let src: PixelArt = this;
+    for (let t = 0; t < ((turns % 4) + 4) % 4; t++) {
+      const q = new PixelArt(src.h, src.w);
+      for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) q.set(src.h - 1 - y, x, src.px[y * src.w + x]);
+      src = q;
+    }
+    return src === this ? this.clone() : src;
+  }
+  /** Draw a thick segment (square brush), used for limbs. */
+  limb(x0: number, y0: number, x1: number, y1: number, thick: number, c: number): this {
+    const steps = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2));
+    const o = Math.floor(thick / 2);
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      this.rect(Math.round(x0 + (x1 - x0) * t) - o, Math.round(y0 + (y1 - y0) * t) - o, thick, thick, c);
+    }
     return this;
   }
   toRows(): string[] {

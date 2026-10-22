@@ -33,3 +33,15 @@ describe('PixelArt helper', () => {
     expect(hash2(3, 4)).not.toBe(hash2(4, 3));
   });
 });
+
+describe('PixelArt rotate and limb', () => {
+  it('rotate90 four times is the identity and once moves the corner', () => {
+    const p = new PixelArt(4, 4).set(0, 0, 2);
+    expect(p.rotate90(1).get(3, 0)).toBe(2);
+    expect([...p.rotate90(4).px]).toEqual([...p.px]);
+  });
+  it('limb paints a continuous thick segment', () => {
+    const p = new PixelArt(10, 10).limb(1, 1, 8, 8, 2, 3);
+    for (let i = 1; i <= 8; i++) expect(p.get(i, i)).toBe(3);
+  });
+});
