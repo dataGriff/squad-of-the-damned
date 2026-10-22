@@ -16,6 +16,7 @@ import { chromium } from 'playwright';
 import { preview } from 'vite';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { artRegistry } from '../../src/game/art/registry';
 
 const GOLDEN = 'test/visual/golden';
 const OUT = 'test/visual/out';
@@ -41,7 +42,7 @@ await page.waitForFunction(() => 'shots' in ((window as unknown as { __capture?:
 type Api = { shots: string[]; shoot(n: string): { png: string; problems: string[] } };
 const all = await page.evaluate(() => (window as unknown as { __capture: Api }).__capture.shots);
 const shots = only.length ? all.filter((s) => only.includes(s)) : all;
-const unknown = only.filter((s) => !all.includes(s));
+const unknown = only.filter((s) => !all.includes(s) && s !== 'styleguide');
 if (unknown.length) throw new Error(`Unknown shots: ${unknown.join(', ')}`);
 
 mkdirSync(GOLDEN, { recursive: true });
@@ -112,6 +113,21 @@ for (const name of shots) {
   console.log(`  FAILED   ${name}: ${result.diff < 0 ? 'size differs' : `${result.diff} pixels differ`} (see ${OUT}/)`);
 }
 
+// the style guide (#65) must render every registry entry without errors
+if (!only.length || only.includes('styleguide')) {
+  const guide = await browser.newPage({ viewport: { width: 1140, height: 900 } });
+  guide.on('pageerror', (e) => errors.push(`styleguide: ${e.message}`));
+  await guide.goto(url + 'styleguide.html');
+  await guide.waitForFunction(() => document.body.dataset.ready === 'true');
+  const shown = Number(await guide.evaluate(() => document.body.dataset.entries));
+  const expected = artRegistry().length;
+  if (shown === expected) console.log(`  ok       styleguide (${shown} registry entries)`);
+  else {
+    failed++;
+    console.log(`  FAILED   styleguide shows ${shown} of ${expected} registry entries`);
+  }
+}
+
 await browser.close();
 await new Promise<void>((res) => server.httpServer.close(() => res()));
 if (errors.length) {
@@ -122,4 +138,4 @@ if (failed) {
   console.error(`Visual check FAILED: ${failed} of ${shots.length} shots`);
   process.exit(1);
 }
-console.log(`Visual check OK: ${shots.length} shots ${update ? 'written' : 'match their goldens'}.`);
+console.log(`Visual check OK: ${shots.length} shots ${update ? 'written' : 'match their goldens'}, style guide renders.`);

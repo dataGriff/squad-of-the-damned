@@ -1,5 +1,7 @@
 # Level design docs (#29)
 
+For how the game looks (palette, type, layout, UI kit, sprites and the checks behind them), see the [art bible](art-bible.md).
+
 One document per night. Each covers the beats, the night's gimmick, which kids
 are required (and why that holds mechanically), the boss, and where the manual
 pages are. The `requiredKids` list in `src/game/levels/nights.ts` must agree

@@ -45,7 +45,7 @@ Everything is drawn into a 256×240 buffer under NES rules: 16px tiles, every sp
 - **Parallax backdrops** (`src/game/art/backdrops.ts`): dithered skies, a moon and halo, and 3–6 depth layers per theme, generated with the `PixelArt` helper (`src/engine/pixelart.ts`: Bayer dithering, shapes, outlines, seamless wrapping).
 - **Effects without alpha**: checkerboard dither for flashes and lamplight, flicker for boss deaths, and an NES-style palette-step fade (`src/engine/fade.ts`) on scene changes and respawns.
 
-`npm run check:palette` covers all ~1,665 generated and hand-drawn sprites.
+`npm run check:palette` covers all 1,668 generated and hand-drawn sprites, in every palette they are drawn in.
 
 ![Before and after the art pass](docs/screenshots/art-pass-before-after.png)
 
@@ -63,6 +63,20 @@ Everything is drawn into a 256×240 buffer under NES rules: 16px tiles, every sp
 
 ![The squad](docs/screenshots/kids.png)
 
+### Design framework
+
+The rules behind the look are code, and checks enforce them. The [art bible](docs/design/art-bible.md) explains how to work within them. The style guide (`/styleguide.html` in `npm run dev`) shows them, drawn by the game itself.
+
+- **Colour tokens** (`src/game/design/tokens.ts`): the interface asks for roles (`text`, `accent`, `dialog`, `ink`…) and never for hex values.
+- **Type** (`type.ts`): named text styles, measuring, wrapping and glyph coverage.
+- **Layout** (`layout.ts`): an 8px grid and the NES title-safe area. Every string the player reads stays inside it.
+- **UI kit** (`src/game/ui/`): panel, menu, dialog, and button prompts that follow the device in use.
+- **Art registry** (`src/game/art/registry.ts`): every sprite, with every palette it is drawn in. The palette, colour-blind and readability checks read it.
+- **Readability** (`readability.ts`): text against its surfaces, gameplay sprites against each night, and backdrops kept quieter than gameplay.
+- **Visual regression** (`src/capture.ts`, `test/visual/`): a deterministic capture mode and 19 golden screenshots, compared pixel for pixel.
+
+Captures: [style guide](docs/screenshots/styleguide.png), [art registry](docs/screenshots/styleguide-art.png).
+
 ## Knowledge as progression
 
 Every boss has a weakness, but it only does damage once that monster's page of the **Monster Manual** has been found. Pages hide behind vents and cracked walls; field-note pages live in secret rooms. Read the manual from the pause menu.
@@ -74,7 +88,10 @@ Every boss has a weakness, but it only does damage once that monster's page of t
 | `npm test` | Vitest: engine, squad rules, boss machine, save migration, palette constraint, level gating |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run check:palette` | every sprite ≤ 4 colours from the NES master palette (#37) |
-| `npm run check:colorblind` | sprite palettes stay distinguishable under protanopia / deuteranopia / tritanopia (#47) |
+| `npm run check:colorblind` | gameplay, portrait and icon palettes stay distinguishable under protanopia / deuteranopia / tritanopia (#47, #63) |
+| `npm run check:readability` | text contrast, gameplay sprites against each night, quiet backdrops (#64) |
+| `npm run test:visual` | builds, then compares 19 golden screenshots pixel for pixel; also checks safe area, glyphs, registered palettes and the style guide (#66). `-- --update` rewrites the goldens |
+| `npm run styleguide:shot` | renders the style guide to `docs/screenshots/styleguide*.png` (#65) |
 | `npm run export:levels` | string-row level sources → Tiled JSON in `src/game/levels/json` (CI checks it is up to date) |
 | `npm run manual:pdf` | builds `docs/manual.pdf`, the retro manual matching the in-game bestiary |
 | `npm run build` | production web build in `dist/` |
@@ -83,16 +100,20 @@ Every boss has a weakness, but it only does damage once that monster's page of t
 ## Layout
 
 ```
-src/engine/   loop, input, tilemap, physics, sprites, camera, render, audio, save, particles, gif, font
+src/engine/   loop, input, tilemap, physics, sprites, camera, render, audio, save, particles, gif, font, clock, random
 src/game/     squad, player, projectiles, objects, enemies/, bosses/, manual, hud, music, scenes/, art/, levels/
-scripts/      palette-check, colorblind-check, export-levels, manual-pdf
-test/         vitest suites
+src/game/design/  tokens, type, layout, vision, readability
+src/game/ui/  panel, menu, dialog, prompt
+src/capture.ts, src/styleguide.ts   capture mode for visual tests; the style guide page
+scripts/      palette-check, colorblind-check, readability-check, styleguide-shot, export-levels, manual-pdf
+test/         vitest suites; visual/ golden screenshots and their runner
 docs/         design docs per night, playtest script, itch page copy, blog series outline, manual.pdf
 src-tauri/    desktop shell
 ```
 
 ## Docs
 
+- [Art bible](docs/design/art-bible.md): the NES rules, colour, type, layout, the UI kit, drawing and registering sprites, and the checks
 - [Level design docs](docs/design/README.md) — beats, gimmick and required kids per night
 - [Playtest script + telemetry](docs/playtest.md)
 - [itch.io page copy](docs/itch.md)
