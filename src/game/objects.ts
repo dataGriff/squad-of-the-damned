@@ -6,6 +6,9 @@ import { audio } from '../engine/audio';
 import { TILE } from '../engine/constants';
 import * as A from './art/items';
 import { drawGlint } from './effects';
+import { cycled, cycleList, rotated } from './palette';
+
+const LAMP_FLICKER = cycleList(['yellow', 'yellow', 'yellow', 'amber', 'yellow', 'yellow', 'sand', 'yellow', 'yellow', 'amber']);
 import type { Entity, World } from './world';
 import type { MapObject } from '../engine/tilemap';
 
@@ -59,7 +62,10 @@ export class Lamp extends Static {
     }
   }
   draw(r: Renderer, cx: number, cy: number): void {
-    if (this.lit) r.sprite(A.LAMP_GLOW, A.LAMP_GLOW_PAL, this.x - 2 + 8 - 24 - cx, this.y + 8 - 8 - cy);
+    if (this.lit) {
+      const t = performance.now() / 1000 + this.index;
+      r.sprite(A.LAMP_GLOW, cycled(A.LAMP_GLOW_PAL, 1, LAMP_FLICKER, t, 6), this.x - 2 + 8 - 24 - cx, this.y + 8 - 8 - cy);
+    }
     r.sprite(this.lit ? A.LAMP_ON : A.LAMP_OFF, A.LAMP_PAL, this.x - 2 - cx, this.y - cy);
   }
 }
@@ -390,14 +396,15 @@ export class Portal extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     const s = this.anim.sprite;
+    const swirl = rotated(A.PORTAL_PAL, Math.floor(performance.now() / 120));
     if (this.closing > 0) {
       const k = Math.max(0.05, this.closing / 2);
       r.ctx.save();
       r.ctx.translate(this.x + 16 - cx, this.y + 24 - cy);
       r.ctx.scale(k, 1);
-      r.ctx.drawImage(r.atlas.get(s, A.PORTAL_PAL), -16, -24);
+      r.ctx.drawImage(r.atlas.get(s, swirl), -16, -24);
       r.ctx.restore();
-    } else r.sprite(s, A.PORTAL_PAL, this.x - cx, this.y - cy);
+    } else r.sprite(s, swirl, this.x - cx, this.y - cy);
   }
 }
 

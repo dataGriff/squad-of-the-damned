@@ -75,3 +75,29 @@ export function luminance(hex: string): number {
   });
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
+
+/**
+ * Palette cycling (#54): the NES trick of animating by changing a palette
+ * entry rather than the pixels. Returns `base` with index `i` replaced by the
+ * colour from `names` for time t.
+ */
+export function cycled(base: SpritePalette, i: 1 | 2 | 3, names: string[], t: number, fps: number): SpritePalette {
+  const name = names[Math.floor(t * fps) % names.length];
+  const out = [...base] as [null, string, string, string];
+  out[i] = MASTER_PALETTE[name];
+  return out;
+}
+
+/** Rotate entries 1..3 by `steps` (a swirl when stepped over time). */
+export function rotated(base: SpritePalette, steps: number): SpritePalette {
+  const c = [base[1], base[2], base[3]];
+  const k = ((steps % 3) + 3) % 3;
+  return [null, c[k % 3], c[(k + 1) % 3], c[(k + 2) % 3]];
+}
+
+/** Every colour named in a cycle must be a master colour (checked by the palette test). */
+export const CYCLE_COLOURS: string[][] = [];
+export function cycleList(names: string[]): string[] {
+  CYCLE_COLOURS.push(names);
+  return names;
+}

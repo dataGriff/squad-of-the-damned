@@ -19,7 +19,7 @@ import { spawnEnemy, Bat } from '../enemies/fodder';
 import { spawnBoss } from '../bosses';
 import type { Boss } from '../bosses/base';
 import { tileSprite, type Theme } from '../art/tiles';
-import { drawBackdrop } from '../backdrop';
+import { drawBackdrop, Storm } from '../backdrop';
 import { maskAt } from '../art/autotiles';
 import { hash2 } from '../../engine/pixelart';
 import { SONGS } from '../music';
@@ -66,6 +66,8 @@ export class NightScene implements Scene {
   private portalSpawn = 0;
   private id: string;
   heatmap = false;
+  /** Lightning over the graveyard and the storm drain (#54). */
+  private storm = new Storm();
 
   constructor(private game: Game, private night: NightDef | null, private opts: NightOpts = {}) {
     this.id = night ? night.id : 'finale';
@@ -327,6 +329,10 @@ export class NightScene implements Scene {
     }
     this.world.update(dt);
     this.camera.update(this.player.centerX, this.player.centerY, this.player.facing, dt);
+    if (this.theme === 'graveyard' || this.theme === 'drain') {
+      const s = this.storm.update(dt);
+      if (s.thunder) audio.play('thunder');
+    }
   }
 
   /** Attract-mode autopilot (#44): walk right, hop over things, shoot now and then. */
@@ -355,7 +361,8 @@ export class NightScene implements Scene {
 
   draw(r: Renderer, alpha: number): void {
     const cam = this.camera.offset(alpha);
-    drawBackdrop(r, this.theme, cam.x, this.world.time);
+    const stormy = this.theme === 'graveyard' || this.theme === 'drain';
+    drawBackdrop(r, this.theme, cam.x, this.world.time, stormy ? this.storm.state(this.game.save.data.options.reducedFlash) : 'none');
     // tiles
     const frame = Math.floor(this.world.time * 3);
     const kindAt = (x: number, y: number) => this.map.kindAt(x, y);

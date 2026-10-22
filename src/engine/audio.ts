@@ -115,6 +115,7 @@ export const SFX: Record<string, SfxDef> = {
   splash: { channel: 'noise', freq: [4, 7], duration: 0.3, volume: 0.5 },
   die: { channel: 'pulse1', freq: [660, 55], duration: 1.0, slide: 'exp', duty: 0.5 },
   portal: { channel: 'tri', freq: [60, 600], duration: 1.5, slide: 'exp', volume: 0.8 },
+  thunder: { channel: 'noise', freq: [3, 1], duration: 1.6, volume: 0.9 },
 };
 
 export class AudioEngine {

@@ -11,8 +11,11 @@ import { KID_SHEETS } from '../art/kids';
 import { NIGHTS } from '../levels/nights';
 import { tileSprite } from '../art/tiles';
 import { AIR_U } from '../art/autotiles';
-import { drawBackdrop } from '../backdrop';
+import { drawBackdrop, Storm } from '../backdrop';
 import { BAT, BAT_PAL, CREATURE_ART } from '../art/monsters';
+import { cycled, cycleList } from '../palette';
+
+const WINDOW_FLICKER = cycleList(['yellow', 'yellow', 'sand', 'yellow', 'amber', 'yellow']);
 import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, ROPE_LADDER, ROPE_PAL, TREEHOUSE, TREEHOUSE_PAL } from '../art/scenery';
 import { NightScene } from './night';
 
@@ -20,6 +23,7 @@ const GREY: readonly [null, string, string, string] = [null, '#3c3c3c', '#3c3c3c
 
 export class TitleScene implements Scene {
   private t = 0;
+  private storm = new Storm(6, 12);
   private menu: Menu;
   private showMenu = false;
   constructor(private game: Game) {
@@ -43,6 +47,7 @@ export class TitleScene implements Scene {
   }
   update(dt: number): void {
     this.t += dt;
+    if (this.storm.update(dt).thunder) audio.play('thunder');
     const input = this.game.input;
     if (!this.showMenu) {
       if (input.pressed('menu') || input.pressed('pause') || input.pressed('jump')) {
@@ -58,7 +63,7 @@ export class TitleScene implements Scene {
   }
   draw(r: Renderer): void {
     // the graveyard backdrop, drifting slowly
-    drawBackdrop(r, 'graveyard', this.t * 10, this.t);
+    drawBackdrop(r, 'graveyard', this.t * 10, this.t, this.storm.state(this.game.save.data.options.reducedFlash));
     // bats crossing the moon
     for (let i = 0; i < 3; i++) {
       const bx = ((this.t * (22 + i * 7) + i * 97) % 320) - 32;
@@ -180,7 +185,7 @@ export class HubScene implements Scene {
     // the oak and the treehouse
     r.sprite(OAK_TRUNK, OAK_TRUNK_PAL, 92, 72);
     r.sprite(OAK_CANOPY, OAK_CANOPY_PAL, 0, 6);
-    r.sprite(TREEHOUSE, TREEHOUSE_PAL, 60, 32);
+    r.sprite(TREEHOUSE, cycled(TREEHOUSE_PAL, 3, WINDOW_FLICKER, this.t, 3), 60, 32);
     r.sprite(ROPE_LADDER, ROPE_PAL, 150, 100);
     // grass
     for (let x = 0; x < SCREEN_W; x += 16) {

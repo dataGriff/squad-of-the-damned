@@ -6,7 +6,7 @@
  */
 import { PixelArt, rng } from '../../engine/pixelart';
 import type { Sprite } from '../../engine/sprites';
-import { pal, type SpritePalette } from '../palette';
+import { cycleList, pal, type SpritePalette } from '../palette';
 import type { Theme } from './tiles';
 
 export interface BackLayer {
@@ -25,6 +25,12 @@ export interface BackLayer {
   every?: number;
   /** Offset of the first repeat. */
   offset?: number;
+  /** Palette cycling: one entry steps through these colours. */
+  cycle?: { index: 1 | 2 | 3; colours: string[]; fps: number };
+  /** Sky layers turn white under lightning; silhouettes turn black. */
+  sky?: boolean;
+  /** Underground themes have no sky: lightning lights these layers with this palette instead. */
+  strikePal?: SpritePalette;
 }
 
 const W = 256;
@@ -36,7 +42,7 @@ const W = 256;
 /** A dithered vertical gradient between two colours, 32px wide, tiled across the screen. */
 function skyBand(name: string, top: string, bottom: string, y0: number, y1: number): BackLayer {
   const p = new PixelArt(32, y1 - y0).gradientV(0, 0, 32, y1 - y0, 1, 2);
-  return { frames: [p.toSprite(name)], pal: pal(top, bottom, bottom), y: y0, factor: 0 };
+  return { frames: [p.toSprite(name)], pal: pal(top, bottom, bottom), y: y0, factor: 0, sky: true };
 }
 
 function starField(name: string, h: number, seed: number): Sprite[] {
@@ -645,9 +651,9 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
     { frames: [HALO], pal: pal('navy', 'indigo', 'indigo'), y: 16, factor: 0, x: 170 },
     { frames: [MOON], pal: pal('moon', 'sand', 'yellow'), y: 34, factor: 0, x: 188 },
     { frames: [clouds('bd_sub_clouds', 4)], pal: pal('navy', 'indigo', 'periwinkle'), y: 50, factor: 0.06, drift: 3 },
-    { frames: [farRooftops('bd_sub_far', 9, 70)], pal: pal('navy', 'indigo', 'amber'), y: 120, factor: 0.15 },
+    { frames: [farRooftops('bd_sub_far', 9, 70)], pal: pal('navy', 'indigo', 'amber'), y: 120, factor: 0.15, cycle: { index: 3, colours: cycleList(['amber', 'amber', 'yellow', 'amber', 'tan', 'amber']), fps: 2 } },
     { frames: [suburbTrees('bd_sub_trees', 21)], pal: pal('black', 'darkGreen', 'midGreen'), y: 98, factor: 0.3 },
-    { frames: [suburbHouses('bd_sub_houses')], pal: pal('black', 'darkGrey', 'yellow'), y: 104, factor: 0.45 },
+    { frames: [suburbHouses('bd_sub_houses')], pal: pal('black', 'darkGrey', 'yellow'), y: 104, factor: 0.45, cycle: { index: 3, colours: cycleList(['yellow', 'yellow', 'yellow', 'sand', 'yellow', 'yellow', 'yellow', 'amber']), fps: 3 } },
     { frames: [hedges('bd_sub_hedge', 5)], pal: pal('black', 'darkGreen', 'grey'), y: 178, factor: 0.7 },
   ],
   graveyard: [
@@ -656,20 +662,20 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
     { frames: STARS, pal: pal('darkGrey', 'lavender', 'white'), y: 16, factor: 0.02, fps: 1.2 },
     { frames: [BIG_HALO], pal: pal('indigo', 'purple', 'purple'), y: 4, factor: 0, x: 140 },
     { frames: [BIG_MOON], pal: pal('moon', 'sand', 'yellow'), y: 30, factor: 0, x: 166 },
-    { frames: [farRooftops('bd_gy_far', 31, 80, true, 0.04)], pal: pal('black', 'navy', 'amber'), y: 128, factor: 0.12 },
+    { frames: [farRooftops('bd_gy_far', 31, 80, true, 0.04)], pal: pal('black', 'navy', 'amber'), y: 128, factor: 0.12, cycle: { index: 3, colours: cycleList(['amber', 'yellow', 'amber', 'tan']), fps: 2 } },
     { frames: [deadTrees('bd_gy_trees', 8)], pal: pal('black', 'darkGrey', 'darkGrey'), y: 58, factor: 0.3 },
-    { frames: [0, 1, 2, 3].map((f) => fog('bd_gy_fog', 3, f)), pal: pal('purple', 'lavender', 'lavender'), y: 170, factor: 0.45, drift: 6, fps: 2 },
+    { frames: [0, 1, 2, 3].map((f) => fog('bd_gy_fog', 3, f)), pal: pal('purple', 'lavender', 'lavender'), y: 170, factor: 0.45, drift: 6, fps: 2, cycle: { index: 2, colours: cycleList(['lavender', 'mist', 'lavender', 'violet']), fps: 1.5 } },
     { frames: [ironFence('bd_gy_fence')], pal: pal('black', 'darkGrey', 'grey'), y: 162, factor: 0.65 },
   ],
   mansion: [
     { frames: [wallpaper('bd_mn_paper')], pal: pal('darkRed', 'darkBrown', 'maroon'), y: 26, factor: 0.5 },
     { frames: [moulding('bd_mn_moulding')], pal: pal('black', 'darkBrown', 'brown'), y: 16, factor: 0.5 },
-    { frames: [glow('bd_mn_glow', 22)], pal: pal('maroon', 'maroon', 'maroon'), y: 50, factor: 0.5, every: 128, offset: 102 },
-    { frames: [mansionWindow('bd_mn_window')], pal: pal('darkBrown', 'navy', 'periwinkle'), y: 34, factor: 0.5, every: 256, offset: 30 },
+    { frames: [glow('bd_mn_glow', 22)], pal: pal('maroon', 'maroon', 'maroon'), y: 50, factor: 0.5, every: 128, offset: 102, cycle: { index: 1, colours: cycleList(['maroon', 'maroon', 'crimson', 'maroon']), fps: 5 } },
+    { frames: [mansionWindow('bd_mn_window')], pal: pal('darkBrown', 'navy', 'periwinkle'), y: 34, factor: 0.5, every: 256, offset: 30, cycle: { index: 3, colours: cycleList(['periwinkle', 'mist', 'periwinkle', 'blue']), fps: 1 } },
     { frames: [curtain('bd_mn_curtain_l', false)], pal: pal('darkRed', 'crimson', 'red'), y: 28, factor: 0.5, every: 256, offset: 16 },
     { frames: [curtain('bd_mn_curtain_r', true)], pal: pal('darkRed', 'crimson', 'red'), y: 28, factor: 0.5, every: 256, offset: 66 },
     { frames: [portrait('bd_mn_portrait')], pal: pal('darkBrown', 'black', 'rust'), y: 52, factor: 0.5, every: 256, offset: 162 },
-    { frames: [0, 1].map((f) => candle('bd_mn_candle', f)), pal: pal('rust', 'cream', 'yellow'), y: 62, factor: 0.5, every: 128, offset: 117, fps: 5 },
+    { frames: [0, 1].map((f) => candle('bd_mn_candle', f)), pal: pal('rust', 'cream', 'yellow'), y: 62, factor: 0.5, every: 128, offset: 117, fps: 5, cycle: { index: 3, colours: cycleList(['yellow', 'white', 'yellow', 'amber', 'yellow']), fps: 7 } },
     { frames: [wainscot('bd_mn_wainscot')], pal: pal('black', 'darkBrown', 'brown'), y: 128, factor: 0.5 },
   ],
   sewer: [
@@ -678,9 +684,9 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
     { frames: [0, 1, 2].map((f) => slime('bd_sw_slime', f)), pal: pal('black', 'bogGreen', 'olive'), y: 196, factor: 0.3, fps: 3 },
   ],
   drain: [
-    { frames: [culvert('bd_dr_culvert')], pal: pal('black', 'drainBlue', 'teal'), y: 16, factor: 0.12 },
-    { frames: [lightShafts('bd_dr_shafts')], pal: pal('black', 'teal', 'iceBlue'), y: 16, factor: 0.35 },
-    { frames: [0, 1, 2, 3].map((f) => rain('bd_dr_rain', f)), pal: pal('teal', 'skyBlue', 'skyBlue'), y: 16, factor: 0.35, fps: 12, every: 64 },
+    { frames: [culvert('bd_dr_culvert')], pal: pal('black', 'drainBlue', 'teal'), y: 16, factor: 0.12, strikePal: pal('black', 'grey', 'white') },
+    { frames: [lightShafts('bd_dr_shafts')], pal: pal('black', 'teal', 'iceBlue'), y: 16, factor: 0.35, strikePal: pal('black', 'white', 'white'), cycle: { index: 3, colours: cycleList(['iceBlue', 'white', 'iceBlue', 'cyan']), fps: 3 } },
+    { frames: [0, 1, 2, 3].map((f) => rain('bd_dr_rain', f)), pal: pal('teal', 'skyBlue', 'skyBlue'), y: 16, factor: 0.35, fps: 12, every: 64, strikePal: pal('white', 'white', 'white'), cycle: { index: 2, colours: cycleList(['skyBlue', 'iceBlue', 'periwinkle']), fps: 8 } },
   ],
   hub: [],
 };

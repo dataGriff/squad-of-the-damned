@@ -43,7 +43,10 @@ export function drawHud(r: Renderer, squad: Squad, timer: number | null, pagePop
     const m = Math.floor(timer / 60);
     const s = Math.floor(timer % 60);
     const text = `${11 - m}:${(59 - s).toString().padStart(2, '0')}`;
-    r.text(text, SCREEN_W - 8 * text.length - 4, 4, timer < 15 ? '#e40058' : '#f8f8b8');
+    // the clock pulses red as midnight closes in (#54)
+    const late = timer > 60 ? 0 : timer > 30 ? 1 : 2;
+    const pulse = late === 0 ? false : Math.floor(performance.now() / (late === 1 ? 500 : 200)) % 2 === 0;
+    r.text(text, SCREEN_W - 8 * text.length - 4, 4, late === 0 ? '#f8f8b8' : pulse ? '#e40058' : late === 2 ? '#fcfcfc' : '#f8f8b8');
   } else {
     r.text('B:' + ABILITY_HINT[squad.active], SCREEN_W - 8 * (2 + ABILITY_HINT[squad.active].length) - 2, 4, '#7c7c7c');
   }

@@ -3,7 +3,10 @@
  * auto-tiled structural tiles from autotiles.ts. Each tile is 4 colours.
  */
 import { defineSprite, type Sprite } from '../../engine/sprites';
-import { pal, type SpritePalette } from '../palette';
+import { cycled, cycleList, pal, type SpritePalette } from '../palette';
+
+const WATER_CYCLE = cycleList(['skyBlue', 'iceBlue', 'white', 'iceBlue']);
+const SLIME_CYCLE = cycleList(['lime', 'yellow', 'lime', 'olive']);
 import { AIR_U, allAutoTileSprites, autoTile } from './autotiles';
 
 const S = defineSprite;
@@ -89,8 +92,11 @@ export function tileSprite(gid: number, theme: Theme, frame = 0, mask = AIR_U, v
       return autoTile('spike', theme, t.tiles, mask, variant, frame);
     case 7:
       return autoTile('vent', theme, t.tiles, mask, variant, frame);
-    case 8:
-      return autoTile('water', theme, t.tiles, mask, variant, frame);
+    case 8: {
+      // palette-cycled highlights make the surface shimmer (#54)
+      const w = autoTile('water', theme, t.tiles, mask, variant, frame);
+      return { sprite: w.sprite, pal: cycled(w.pal, 3, theme === 'sewer' ? SLIME_CYCLE : WATER_CYCLE, frame, 1) };
+    }
     case 9:
       return { sprite: DECO[theme][0], pal: t.deco };
     case 10:
