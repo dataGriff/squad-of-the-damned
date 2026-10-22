@@ -4,6 +4,7 @@ import { anim, Animator, defineSprite, type Sprite } from '../engine/sprites';
 import { pal, type SpritePalette } from './palette';
 import { BAT, BAT_PAL } from './art/monsters';
 import type { Entity, World } from './world';
+import { clock } from '../engine/clock';
 
 /** A body that tumbles, bounces once off the floor and blinks out. */
 export class Corpse implements Entity {
@@ -92,7 +93,7 @@ export const GLINT_PAL = pal('white', 'white', 'white');
 
 /** Draw a glint at (x, y) if this pickup is in its twinkle window; `seed` staggers pickups. */
 export function drawGlint(r: Renderer, x: number, y: number, seed: number): void {
-  const t = (performance.now() / 1000 + seed * 0.37) % 1.8;
+  const t = (clock.now() + seed * 0.37) % 1.8;
   if (t >= 0.25) return;
   r.sprite(GLINT.frames[Math.min(3, Math.floor(t / 0.0625))], GLINT_PAL, x - 2, y - 2);
 }

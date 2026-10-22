@@ -14,6 +14,7 @@ import { BatBurst } from '../effects';
 import type { Sprite } from '../../engine/sprites';
 import { Boulder, Bubble } from '../projectiles';
 import type { Lantern, Sluice, Valve } from '../objects';
+import { rand } from '../../engine/random';
 
 /* ------------------------------------------------------------------ */
 /* Night 1: the Vampire Count (#23)                                     */
@@ -79,7 +80,7 @@ export class VampireCount extends Boss {
               }
               c.move(dt);
               if (!m.telegraphing && (b.x <= c.arenaX + 4 || b.x + b.w >= c.arenaX + c.arenaW - 4)) {
-                c.targetX = c.arenaX + 40 + Math.random() * (c.arenaW - 80);
+                c.targetX = c.arenaX + 40 + rand() * (c.arenaW - 80);
                 return 'float';
               }
             },
@@ -161,7 +162,7 @@ export class VampireCount extends Boss {
               }
               c.move(dt);
               if (!m.telegraphing && (b.x <= c.arenaX + 4 || b.x + b.w >= c.arenaX + c.arenaW - 4)) {
-                c.targetX = c.arenaX + 40 + Math.random() * (c.arenaW - 80);
+                c.targetX = c.arenaX + 40 + rand() * (c.arenaW - 80);
                 return m.history.filter((h) => h === 'swoop').length % 3 === 0 ? 'scatter' : 'float';
               }
             },
@@ -563,7 +564,7 @@ export class GillCreature extends Boss {
               },
               update(c, m, dt) {
                 c.swim(dt, true);
-                if (m.stateTime > 1.5) return Math.random() < 0.5 ? 'leap' : 'spit';
+                if (m.stateTime > 1.5) return rand() < 0.5 ? 'leap' : 'spit';
               },
             },
             leap: {
@@ -685,7 +686,7 @@ export class GillCreature extends Boss {
     b.vx = chase ? this.dir * 40 : 0;
     b.x = Math.max(this.arenaX + 2, Math.min(this.arenaX + this.arenaW - b.w - 2, b.x + b.vx * dt));
     b.y += (surface - b.y) * 4 * dt + Math.sin(w.time * 3) * 6 * dt;
-    if (Math.random() < 0.1) w.particles.emit({ x: b.x + Math.random() * b.w, y: surface + 10, vx: 0, vy: -20, life: 0.4, colour: '#a4e4fc', size: 1, gravity: 0, kind: 'drop' });
+    if (rand() < 0.1) w.particles.emit({ x: b.x + rand() * b.w, y: surface + 10, vx: 0, vy: -20, life: 0.4, colour: '#a4e4fc', size: 1, gravity: 0, kind: 'drop' });
   }
   fly(dt: number): void {
     const b = this.body;

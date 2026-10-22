@@ -13,9 +13,11 @@ import { NightScene } from './game/scenes/night';
 import { NIGHTS } from './game/levels/nights';
 import './style.css';
 
+// ?capture: deterministic frames for the visual tests (#66), no real-time loop
+const capture = new URLSearchParams(location.search).has('capture');
 const root = document.getElementById('app')!;
 const renderer = new Renderer(root);
-const save = new SaveStore();
+const save = new SaveStore(capture ? null : undefined);
 renderer.fader.setPalette(Object.values(MASTER_PALETTE));
 const bindings: Bindings = save.data.bindings ? { ...DEFAULT_BINDINGS, ...save.data.bindings } : DEFAULT_BINDINGS;
 const input = new InputState();
@@ -73,7 +75,8 @@ const loop = new FixedLoop({
     if (gif.recording && frameCount++ % 2 === 0) gif.addFrame(renderer.ctx.getImageData(0, 0, SCREEN_W, SCREEN_H).data);
   },
 });
-loop.start();
+if (capture) import('./capture').then((m) => ((window as unknown as { __capture: unknown }).__capture = m.installCapture(game)));
+else loop.start();
 
 // Landscape nudge on phones (#46)
 const orient = () => document.body.classList.toggle('portrait', window.innerHeight > window.innerWidth && (navigator.maxTouchPoints > 0));

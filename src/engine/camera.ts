@@ -1,4 +1,5 @@
 import { SCREEN_H, SCREEN_W } from './constants';
+import { rand } from './random';
 
 export interface Rect {
   x: number;
@@ -79,8 +80,8 @@ export class Camera {
     if (this.shakeTime > 0) {
       this.shakeTime -= dt;
       const m = this.reducedMotion ? 0 : this.shakeMag;
-      this.shakeX = m ? (Math.random() * 2 - 1) * m : 0;
-      this.shakeY = m ? (Math.random() * 2 - 1) * m : 0;
+      this.shakeX = m ? (rand() * 2 - 1) * m : 0;
+      this.shakeY = m ? (rand() * 2 - 1) * m : 0;
     } else {
       this.shakeX = this.shakeY = 0;
     }

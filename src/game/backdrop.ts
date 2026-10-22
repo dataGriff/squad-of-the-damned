@@ -6,6 +6,7 @@ import { FOREGROUND } from './art/props';
 import type { Sprite } from '../engine/sprites';
 import { THEMES, type Theme } from './art/tiles';
 import { cycled, pal, type SpritePalette } from './palette';
+import { rand as gameRand } from '../engine/random';
 
 /**
  * Lightning (#54): 'strike' turns the sky white and every other layer into a
@@ -66,7 +67,7 @@ export class Storm {
   private t = 0;
   private strikeAt = -10;
   thunderIn = -1;
-  constructor(private minGap = 5, private maxGap = 11, private rand: () => number = Math.random) {
+  constructor(private minGap = 5, private maxGap = 11, private rand: () => number = gameRand) {
     this.next = 2 + this.rand() * 4;
   }
   update(dt: number): { strike: boolean; thunder: boolean } {

@@ -16,10 +16,12 @@
     "check:palette": "tsx scripts/palette-check.ts",
     "check:colorblind": "tsx scripts/colorblind-check.ts",
     "manual:pdf": "tsx scripts/manual-pdf.ts",
+    "test:visual": "vite build && tsx test/visual/run.ts",
     "tauri": "tauri"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "playwright": "^1.56.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",

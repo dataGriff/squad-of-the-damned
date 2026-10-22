@@ -10,6 +10,7 @@ import { weaknessMultiplier, type Weakness } from '../manual';
 import { BossMachine, type BossPhase } from './machine';
 import { WHITE } from '../enemies/base';
 import { SKULL, SKULL_PAL } from '../art/icons';
+import { rand } from '../../engine/random';
 
 export abstract class Boss implements Damageable {
   kind = 'boss';
@@ -124,8 +125,8 @@ export abstract class Boss implements Damageable {
     if (this.defeatTime >= 0) {
       this.defeatTime += dt;
       this.anim.update(dt);
-      if (this.defeatSprite(this.defeatTime) === undefined && Math.random() < 0.4)
-        world.particles.burst(this.body.x + Math.random() * this.body.w, this.body.y + Math.random() * this.body.h, '#fcfcfc', 2, 50);
+      if (this.defeatSprite(this.defeatTime) === undefined && rand() < 0.4)
+        world.particles.burst(this.body.x + rand() * this.body.w, this.body.y + rand() * this.body.h, '#fcfcfc', 2, 50);
       if (this.defeatTime > this.defeatLength) {
         this.dead = true;
         world.events.onBossDefeated(this.id);

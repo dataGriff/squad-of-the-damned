@@ -11,6 +11,8 @@ import { cycled, cycleList, rotated } from './palette';
 const LAMP_FLICKER = cycleList(['yellow', 'yellow', 'yellow', 'amber', 'yellow', 'yellow', 'sand', 'yellow', 'yellow', 'amber']);
 import type { Entity, World } from './world';
 import type { MapObject } from '../engine/tilemap';
+import { rand } from '../engine/random';
+import { clock } from '../engine/clock';
 
 abstract class Static implements Entity {
   abstract kind: string;
@@ -35,7 +37,7 @@ export class PagePickup extends Static {
     if (this.touching(world)) {
       this.dead = true;
       audio.play('page');
-      for (let i = 0; i < 10; i++) world.particles.sparkle(this.x + Math.random() * 12, this.y + Math.random() * 12);
+      for (let i = 0; i < 10; i++) world.particles.sparkle(this.x + rand() * 12, this.y + rand() * 12);
       world.events.onPage(this.pageId);
     }
   }
@@ -63,7 +65,7 @@ export class Lamp extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     if (this.lit) {
-      const t = performance.now() / 1000 + this.index;
+      const t = clock.now() + this.index;
       r.sprite(A.LAMP_GLOW, cycled(A.LAMP_GLOW_PAL, 1, LAMP_FLICKER, t, 6), this.x - 2 + 8 - 24 - cx, this.y + 8 - 8 - cy);
     }
     r.sprite(this.lit ? A.LAMP_ON : A.LAMP_OFF, A.LAMP_PAL, this.x - 2 - cx, this.y - cy);
@@ -152,7 +154,7 @@ export class HeartPickup extends Static {
     }
   }
   draw(r: Renderer, cx: number, cy: number): void {
-    r.sprite(A.HEART, A.HEART_PAL, this.x - cx, this.y - cy + Math.round(Math.sin(performance.now() / 200)));
+    r.sprite(A.HEART, A.HEART_PAL, this.x - cx, this.y - cy + Math.round(Math.sin(clock.now() * 5)));
     drawGlint(r, this.x + 2 - cx, this.y + 1 - cy, this.x);
   }
 }
@@ -174,7 +176,7 @@ export class Exit extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     r.sprite(A.EXIT, A.DOOR_PAL, this.x - cx, this.y - cy);
-    if (this.open) r.text('▲', this.x + 4 - cx, this.y - 10 - cy + Math.round(Math.sin(performance.now() / 250) * 2), '#f8d878');
+    if (this.open) r.text('▲', this.x + 4 - cx, this.y - 10 - cy + Math.round(Math.sin(clock.now() * 4) * 2), '#f8d878');
   }
 }
 
@@ -208,7 +210,7 @@ export class Valve extends Static {
     this.anim.update(dt);
     if (this.spray > 0) {
       this.spray -= dt;
-      if (Math.random() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100, kind: 'drop' });
+      if (rand() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (rand() - 0.5) * 30, vy: 60 + rand() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100, kind: 'drop' });
     }
   }
   /** Rect of the falling water column below the valve. */
@@ -262,7 +264,7 @@ export class Lantern extends Static {
       }
     } else if (this.burning > 0) {
       this.burning -= dt;
-      if (Math.random() < 0.3) world.particles.emit({ x: this.x + Math.random() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40, kind: 'spark' });
+      if (rand() < 0.3) world.particles.emit({ x: this.x + rand() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40, kind: 'spark' });
       if (this.burning <= 0) {
         this.dead = true;
         world.add(new LanternRespawn(this.x - 4, this.restY - 4, 6));
@@ -360,7 +362,7 @@ export class Seal extends Static {
     this.done = true;
     this.hostile = false;
     audio.play('checkpoint');
-    for (let i = 0; i < 12; i++) world.particles.sparkle(this.x + Math.random() * 12, this.y + Math.random() * 12, '#9878f8');
+    for (let i = 0; i < 12; i++) world.particles.sparkle(this.x + rand() * 12, this.y + rand() * 12, '#9878f8');
     const seals = world.all<Seal>('seal');
     world.events.onSeal(seals.filter((s) => s.done).length, seals.length);
   }
@@ -388,7 +390,7 @@ export class Portal extends Static {
     this.anim.update(dt);
     if (this.closing > 0) {
       this.closing -= dt;
-      if (Math.random() < 0.6) world.particles.emit({ x: this.x + 16, y: this.y + 24, vx: (Math.random() - 0.5) * 120, vy: (Math.random() - 0.5) * 120, life: 0.5, colour: '#9878f8', size: 2, gravity: 0, kind: 'spark' });
+      if (rand() < 0.6) world.particles.emit({ x: this.x + 16, y: this.y + 24, vx: (rand() - 0.5) * 120, vy: (rand() - 0.5) * 120, life: 0.5, colour: '#9878f8', size: 2, gravity: 0, kind: 'spark' });
       if (this.closing <= 0) this.dead = true;
       return;
     }
@@ -396,7 +398,7 @@ export class Portal extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     const s = this.anim.sprite;
-    const swirl = rotated(A.PORTAL_PAL, Math.floor(performance.now() / 120));
+    const swirl = rotated(A.PORTAL_PAL, Math.floor(clock.now() * 1000 / 120));
     if (this.closing > 0) {
       const k = Math.max(0.05, this.closing / 2);
       r.ctx.save();

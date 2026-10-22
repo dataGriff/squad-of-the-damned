@@ -4,12 +4,13 @@ import { BAT, BAT_DEAD, BAT_PAL, FROG, FROG_PAL, FROG_SQUASH, HAND, HAND_PAL, RA
 import { Enemy } from './base';
 import type { World } from '../world';
 import type { Renderer } from '../../engine/render';
+import { rand } from '../../engine/random';
 
 export class Bat extends Enemy {
   protected corpse() {
     return { sprite: BAT_DEAD, vx: 20, vy: -30, gravity: 500, life: 0.9 };
   }
-  private t = Math.random() * 6;
+  private t = rand() * 6;
   private swoop = 0;
   constructor(x: number, y: number) {
     super(x, y, { w: 10, h: 6, hp: 1, speed: 50, aggroRange: 90, flying: true, colour: '#6844fc', anims: { fly: BAT }, pal: BAT_PAL });
@@ -129,7 +130,7 @@ export class BogFrog extends Enemy {
         this.dir = this.aggro ? Math.sign(dx) || this.dir : -this.dir;
         b.vx = this.dir * this.opts.speed;
         b.vy = -220;
-        this.wait = 0.9 + Math.random() * 0.4;
+        this.wait = 0.9 + rand() * 0.4;
       }
     } else this.anim.frame = 0;
     applyGravity(b, dt);

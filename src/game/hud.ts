@@ -9,6 +9,7 @@ import { KID_PORTRAITS } from './art/kids';
 import { KIDS, KID_ORDER, type Squad } from './squad';
 import { SILVER, SILVER_PAL } from './art/items';
 import { BUTTON_B, BUTTON_PAL, CLOCK, CLOCK_PAL, HEART_EMPTY, HEART_EMPTY_PAL, HEART_FULL, HEART_PAL } from './art/icons';
+import { clock } from '../engine/clock';
 
 const LOCKED: readonly [null, string, string, string] = [null, '#3c3c3c', '#3c3c3c', '#3c3c3c'];
 const INACTIVE: readonly [null, string, string, string] = [null, '#3c3c3c', '#7c7c7c', '#bcbcbc'];
@@ -56,7 +57,7 @@ export function drawHud(r: Renderer, squad: Squad, timer: number | null, pagePop
     const text = `${11 - m}:${(59 - s).toString().padStart(2, '0')}`;
     // the clock pulses red as midnight closes in (#54)
     const late = timer > 60 ? 0 : timer > 30 ? 1 : 2;
-    const pulse = late === 0 ? false : Math.floor(performance.now() / (late === 1 ? 500 : 200)) % 2 === 0;
+    const pulse = late === 0 ? false : Math.floor((clock.now() * 1000) / (late === 1 ? 500 : 200)) % 2 === 0;
     const x = SCREEN_W - 8 * text.length - 4;
     r.sprite(CLOCK, CLOCK_PAL, x - 10, 5);
     r.heading(text, x, 4, late === 0 ? '#f8f8b8' : pulse ? '#e40058' : late === 2 ? '#fcfcfc' : '#f8f8b8');

@@ -7,6 +7,7 @@ import { BOULDER, BOULDER_PAL, CHARGED_SHOT, GARLIC_BOMB, GARLIC_PAL, PEBBLE, PR
 import type { Entity, World } from './world';
 import type { Weakness } from './manual';
 import { TILE } from '../engine/constants';
+import { rand } from '../engine/random';
 
 export type ShotKind = 'pebble' | 'silver' | 'charged';
 
@@ -123,7 +124,7 @@ export class StunCloud implements Entity {
         t.hit(world, 'garlic', 1, this.x + this.w / 2);
         t.stun?.(2.5);
       }
-      for (let i = 0; i < 8; i++) world.particles.sparkle(this.x + Math.random() * this.w, this.y + Math.random() * this.h, '#b8f8d8');
+      for (let i = 0; i < 8; i++) world.particles.sparkle(this.x + rand() * this.w, this.y + rand() * this.h, '#b8f8d8');
     }
     if (this.life <= 0) this.dead = true;
   }

@@ -5,6 +5,7 @@
  */
 import { defineSprite, type Sprite } from './sprites';
 import type { Renderer } from './render';
+import { rand } from './random';
 
 export type ParticleKind = 'square' | 'puff' | 'spark' | 'chip' | 'drop';
 
@@ -55,21 +56,21 @@ export class Particles {
   dust(x: number, y: number, dir = 0, colour = '#bcbcbc'): void {
     const n = this.reduced ? 2 : 4;
     for (let i = 0; i < n; i++) {
-      this.emit({ x: x + (Math.random() - 0.5) * 8, y: y - 2, vx: (Math.random() - 0.5) * 40 - dir * 20, vy: -Math.random() * 25, life: 0.3 + Math.random() * 0.15, colour, size: 1, gravity: 40, kind: 'puff' });
+      this.emit({ x: x + (rand() - 0.5) * 8, y: y - 2, vx: (rand() - 0.5) * 40 - dir * 20, vy: -rand() * 25, life: 0.3 + rand() * 0.15, colour, size: 1, gravity: 40, kind: 'puff' });
     }
   }
 
   burst(x: number, y: number, colour: string, n = 10, speed = 90): void {
     if (this.reduced) n = Math.ceil(n / 2);
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
-      const s = speed * (0.5 + Math.random() * 0.5);
-      this.emit({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.4 + Math.random() * 0.3, colour, size: 2, gravity: 200, kind: 'chip' });
+      const a = (i / n) * Math.PI * 2 + rand() * 0.5;
+      const s = speed * (0.5 + rand() * 0.5);
+      this.emit({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.4 + rand() * 0.3, colour, size: 2, gravity: 200, kind: 'chip' });
     }
   }
 
   sparkle(x: number, y: number, colour = '#f8d878'): void {
-    this.emit({ x, y, vx: (Math.random() - 0.5) * 20, vy: -20 - Math.random() * 20, life: 0.5, colour, size: 1, gravity: -20, kind: 'spark' });
+    this.emit({ x, y, vx: (rand() - 0.5) * 20, vy: -20 - rand() * 20, life: 0.5, colour, size: 1, gravity: -20, kind: 'spark' });
   }
 
   update(dt: number): void {
