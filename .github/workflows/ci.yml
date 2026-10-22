@@ -23,3 +23,20 @@ jobs:
         with:
           name: web-build
           path: dist
+  visual:
+    # golden screenshots, safe-area/glyph/palette checks and the style guide (#66)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:visual
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: test/visual/out

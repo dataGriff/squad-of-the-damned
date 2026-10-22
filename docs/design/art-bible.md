@@ -105,7 +105,7 @@ Every sprite goes in the **art registry** (`src/game/art/registry.ts`), together
 | `npm run check:palette` | every sprite has ≤4 colours, and every registered palette is from the master palette |
 | `npm run check:colorblind` | palettes used by gameplay, portrait and icon art stay distinguishable under protanopia, deuteranopia and tritanopia (scenery is exempt: it shades with neighbouring colours on purpose) |
 | `npm run check:readability` | the three readability rules below |
-| `npm run test:visual` | the 19 golden screenshots match pixel for pixel; text stays in the safe area with every glyph; sprites are drawn only in registered palettes; the style guide renders every registry entry |
+| `npm run test:visual` | the 21 golden screenshots match pixel for pixel; text stays in the safe area with every glyph; sprites are drawn only in registered palettes; the style guide renders every registry entry |
 | `npm run styleguide:shot` | refreshes `docs/screenshots/styleguide*.png` |
 
 **The readability rules:**

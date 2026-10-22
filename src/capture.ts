@@ -51,6 +51,15 @@ function shotTable(c: Capturer): Record<string, () => void> {
     d.world.camera.snapTo(x, 120, 1);
     c.step(45);
   };
+  /** Walk into night i's arena with the boss's page found and let the fight start. */
+  const bossFight = (i: number, page: string) => {
+    night(i, 0, [page]);
+    const d = (g.scene as NightScene).debug;
+    const a = d.map.objectsOfType('arena')[0];
+    d.player.respawn(a.x + 24, 208);
+    d.world.camera.snapTo(a.x + 24, 120, 1);
+    c.step(150);
+  };
   return {
     title: () => {
       g.replace(new TitleScene(g));
@@ -111,14 +120,9 @@ function shotTable(c: Capturer): Record<string, () => void> {
     night3: () => night(2, 0.6),
     night4: () => night(3, 0.3),
     night5: () => night(4, 0.5),
-    boss: () => {
-      night(2, 0, ['wolfman']);
-      const d = (g.scene as NightScene).debug;
-      const a = d.map.objectsOfType('arena')[0];
-      d.player.respawn(a.x + 24, 208);
-      d.world.camera.snapTo(a.x + 24, 120, 1);
-      c.step(150);
-    },
+    boss: () => bossFight(2, 'wolfman'),
+    'boss-count': () => bossFight(0, 'vampire'),
+    'boss-gill': () => bossFight(4, 'gill'),
     pause: () => {
       night(0, 0.1);
       c.press('pause');

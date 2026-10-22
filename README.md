@@ -73,7 +73,9 @@ The rules behind the look are code, and checks enforce them. The [art bible](doc
 - **UI kit** (`src/game/ui/`): panel, menu, dialog, and button prompts that follow the device in use.
 - **Art registry** (`src/game/art/registry.ts`): every sprite, with every palette it is drawn in. The palette, colour-blind and readability checks read it.
 - **Readability** (`readability.ts`): text against its surfaces, gameplay sprites against each night, and backdrops kept quieter than gameplay.
-- **Visual regression** (`src/capture.ts`, `test/visual/`): a deterministic capture mode and 19 golden screenshots, compared pixel for pixel.
+- **Visual regression** (`src/capture.ts`, `test/visual/`): a deterministic capture mode and 21 golden screenshots, compared pixel for pixel.
+
+![The design framework in the game: squad panel, options with prompts, story footer, the Count in the darker mansion, pause, credits](docs/screenshots/design-framework.png)
 
 Captures: [style guide](docs/screenshots/styleguide.png), [art registry](docs/screenshots/styleguide-art.png).
 
@@ -90,7 +92,7 @@ Every boss has a weakness, but it only does damage once that monster's page of t
 | `npm run check:palette` | every sprite ≤ 4 colours from the NES master palette (#37) |
 | `npm run check:colorblind` | gameplay, portrait and icon palettes stay distinguishable under protanopia / deuteranopia / tritanopia (#47, #63) |
 | `npm run check:readability` | text contrast, gameplay sprites against each night, quiet backdrops (#64) |
-| `npm run test:visual` | builds, then compares 19 golden screenshots pixel for pixel; also checks safe area, glyphs, registered palettes and the style guide (#66). `-- --update` rewrites the goldens |
+| `npm run test:visual` | builds, then compares 21 golden screenshots pixel for pixel; also checks safe area, glyphs, registered palettes and the style guide (#66). `-- --update` rewrites the goldens |
 | `npm run styleguide:shot` | renders the style guide to `docs/screenshots/styleguide*.png` (#65) |
 | `npm run export:levels` | string-row level sources → Tiled JSON in `src/game/levels/json` (CI checks it is up to date) |
 | `npm run manual:pdf` | builds `docs/manual.pdf`, the retro manual matching the in-game bestiary |
