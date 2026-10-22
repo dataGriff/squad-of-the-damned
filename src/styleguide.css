@@ -1,0 +1,31 @@
+/* The style guide page (#65). Colours come from the design tokens at run time (--token-name). */
+:root { color-scheme: dark; }
+body { margin: 0; background: var(--screen); color: var(--text); font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 22px; color: var(--accent); margin: 0 0 4px; }
+h2 { font-size: 16px; color: var(--accent); border-bottom: 1px solid var(--edge); padding-bottom: 4px; margin: 40px 0 12px; }
+h3 { font-size: 13px; color: var(--textSoft); margin: 20px 0 8px; }
+p, li { color: var(--textSoft); max-width: 72ch; }
+code { color: var(--text); }
+nav a { color: var(--textSoft); margin-right: 12px; }
+canvas, img { image-rendering: pixelated; image-rendering: crisp-edges; }
+.grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.swatch { width: 92px; }
+.swatch .chip { height: 36px; border: 1px solid var(--edge); }
+.swatch small { display: block; color: var(--textDim); overflow-wrap: anywhere; }
+.row { display: flex; gap: 16px; align-items: center; margin: 6px 0; flex-wrap: wrap; }
+.row .name { width: 140px; color: var(--textSoft); }
+.pal { display: inline-flex; border: 1px solid var(--edge); vertical-align: middle; margin: 0 4px 4px 0; }
+.pal span { width: 10px; height: 10px; }
+.pal span:first-child { background: repeating-conic-gradient(var(--edge) 0 25%, var(--panel) 0 50%) 0 0 / 4px 4px; }
+.entry { border: 1px solid var(--edge); padding: 8px; margin: 8px 0; }
+.entry header { display: flex; justify-content: space-between; gap: 8px; color: var(--textSoft); flex-wrap: wrap; }
+.entry header b { color: var(--text); font-weight: normal; }
+.sprites { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; margin-top: 6px; }
+.sprites canvas { background: var(--edge); }
+.anim { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; margin-right: 6px; }
+.anim small { color: var(--textDim); }
+table { border-collapse: collapse; }
+td, th { border: 1px solid var(--edge); padding: 2px 8px; text-align: left; }
+th { color: var(--textSoft); font-weight: normal; }
+.fail { color: var(--danger); }
