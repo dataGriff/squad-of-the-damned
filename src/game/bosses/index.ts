@@ -685,7 +685,7 @@ export class GillCreature extends Boss {
     b.vx = chase ? this.dir * 40 : 0;
     b.x = Math.max(this.arenaX + 2, Math.min(this.arenaX + this.arenaW - b.w - 2, b.x + b.vx * dt));
     b.y += (surface - b.y) * 4 * dt + Math.sin(w.time * 3) * 6 * dt;
-    if (Math.random() < 0.1) w.particles.emit({ x: b.x + Math.random() * b.w, y: surface + 10, vx: 0, vy: -20, life: 0.4, colour: '#a4e4fc', size: 1, gravity: 0 });
+    if (Math.random() < 0.1) w.particles.emit({ x: b.x + Math.random() * b.w, y: surface + 10, vx: 0, vy: -20, life: 0.4, colour: '#a4e4fc', size: 1, gravity: 0, kind: 'drop' });
   }
   fly(dt: number): void {
     const b = this.body;

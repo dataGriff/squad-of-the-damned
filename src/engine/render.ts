@@ -1,5 +1,6 @@
 import { SCREEN_H, SCREEN_W } from './constants';
 import { glyph, FONT_W } from './font';
+import { displayGlyph } from './display-font';
 import type { Sprite } from './sprites';
 import { Atlas } from './sprites';
 import { Fader } from './fade';
@@ -283,6 +284,35 @@ export class Renderer {
   textShadow(str: string, x: number, y: number, colour = '#fcfcfc', shadow = '#000000'): void {
     this.text(str, x + 1, y + 1, shadow);
     this.text(str, x, y, colour);
+  }
+
+  private headingCache = new Map<string, HTMLCanvasElement>();
+  /**
+   * Heavy display text (#58): the bold 7×7 face with a 1px drop shadow.
+   * Characters the display face lacks fall back to the thin font.
+   */
+  heading(str: string, x: number, y: number, colour = '#fcfcfc', shadow = '#000000'): void {
+    const key = `${str}|${colour}|${shadow}`;
+    let c = this.headingCache.get(key);
+    if (!c) {
+      c = document.createElement('canvas');
+      c.width = str.length * FONT_W + 1;
+      c.height = 9;
+      const g = c.getContext('2d')!;
+      [...str].forEach((ch, i) => {
+        const rows = displayGlyph(ch) ?? glyph(ch).map((r) => '.' + r);
+        for (const [col, dx] of [[shadow, 1], [colour, 0]] as const) {
+          g.fillStyle = col;
+          for (let gy = 0; gy < rows.length; gy++) for (let gx = 0; gx < rows[gy].length; gx++) if (rows[gy][gx] === '#') g.fillRect(i * FONT_W + gx + dx, gy + dx, 1, 1);
+        }
+      });
+      this.headingCache.set(key, c);
+    }
+    this.ctx.drawImage(c, Math.round(x), Math.round(y));
+  }
+
+  headingCentered(str: string, y: number, colour = '#fcfcfc', cx = SCREEN_W / 2): void {
+    this.heading(str, cx - (str.length * FONT_W) / 2, y, colour);
   }
 
   textCentered(str: string, y: number, colour = '#fcfcfc', cx = SCREEN_W / 2): void {

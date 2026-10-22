@@ -103,7 +103,7 @@ export class TitleScene implements Scene {
       }
     }
     if (!this.showMenu) {
-      if (Math.floor(this.t * 2) % 2 === 0) r.textShadow('PRESS START', SCREEN_W / 2 - 44, 132, '#fcfcfc');
+      if (Math.floor(this.t * 2) % 2 === 0) r.headingCentered('PRESS START', 132, '#fcfcfc');
     } else {
       r.box(SCREEN_W / 2 - 60, 118, 120, this.menu.items.length * 12 + 12, '#000000');
       this.menu.draw(r, 124);
@@ -154,7 +154,7 @@ export class HubScene implements Scene {
   }
   private refreshNights(): void {
     const cleared = this.game.save.data.nightsCleared;
-    const items = NIGHTS.map((n) => `${cleared.includes(n.number) ? '*' : ' '} ${n.title}`);
+    const items = NIGHTS.map((n) => `${cleared.includes(n.number) ? '*' : ' '} NIGHT ${n.number}  ${n.short}`);
     const allClear = NIGHTS.every((n) => cleared.includes(n.number));
     items.push(allClear ? (this.game.save.data.gameComplete ? '* MIDNIGHT: THE PORTAL' : '  MIDNIGHT: THE PORTAL') : '  ??? (CLEAR ALL NIGHTS)');
     items.push('  BACK');
@@ -214,7 +214,7 @@ export class HubScene implements Scene {
       if (Math.sin(this.t * 3 + i * 1.7) > -0.2) r.rect(fx, fy, 1, 1, '#f8d878');
     }
     r.box(0, 0, SCREEN_W, 18, '#000000');
-    r.textCentered('THE TREEHOUSE', 5, '#f8d878');
+    r.headingCentered('THE TREEHOUSE', 5, '#f8d878');
     const { found, total } = pagesFound(this.game.save.data.pages);
     r.textShadow(`PAGES ${found}/${total}`, 8, 228, '#fcfcfc');
     r.textShadow(`SILVER ${this.game.save.data.silver}`, 160, 228, '#fcfcfc');
@@ -236,7 +236,7 @@ export class HubScene implements Scene {
         const s = KID_SHEETS[id].anims.idle.frames[0];
         const y = 104 + i * 28;
         r.sprite(s, k.palette, 16 + 8 - s.w / 2, y + 24 - s.h);
-        r.text(k.name, 40, y + 2, '#f8d878');
+        r.heading(k.name, 40, y + 1, '#f8d878');
         r.text(k.blurb.slice(0, 26), 40, y + 12, '#bcbcbc');
       });
       r.text('START TO GO BACK', 12, 212, '#7c7c7c');
@@ -312,7 +312,7 @@ export class OptionsScene implements Scene {
   draw(r: Renderer): void {
     const o = this.game.save.data.options;
     r.box(8, 24, SCREEN_W - 16, 192, '#0000a8');
-    r.textCentered('OPTIONS', 32, '#f8d878');
+    r.headingCentered('OPTIONS', 32, '#f8d878');
     const vals: Record<string, string> = {
       MUSIC: bar(o.musicVolume),
       SOUND: bar(o.sfxVolume),
@@ -372,7 +372,7 @@ export class RemapScene implements Scene {
   }
   draw(r: Renderer): void {
     r.box(8, 24, SCREEN_W - 16, 192, '#0000a8');
-    r.textCentered('REMAP KEYS', 32, '#f8d878');
+    r.headingCentered('REMAP KEYS', 32, '#f8d878');
     this.actions.forEach((a, i) => {
       const sel = i === this.index;
       r.text((sel ? '►' : ' ') + a.toUpperCase(), 20, 52 + i * 14, sel ? '#fcfcfc' : '#bcbcbc');
@@ -421,7 +421,7 @@ export class ManualScene implements Scene {
     r.rect(18, 30, 98, 88, '#503000');
     r.rect(20, 32, 94, 84, found ? '#000000' : '#3c3c3c');
     r.spriteScaled(art.sprite, found ? art.pal : GREY, 67 - (art.sprite.w * scale) / 2, 112 - art.sprite.h * scale, scale);
-    wrap(found ? page.creature : '???', 12).forEach((l, i) => r.text(l, 18, 124 + i * 10, '#2c1600'));
+    wrap(found ? page.creature : '???', 12).forEach((l, i) => r.heading(l, 18, 123 + i * 11, '#2c1600', '#f0d0b0'));
     r.text(page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148, '#a80020');
     const lx = SCREEN_W / 2 + 8;
     const col = 13;
@@ -432,7 +432,7 @@ export class ManualScene implements Scene {
         y += 10;
       }
       y += 6;
-      r.text('WEAKNESS:', lx, y, '#a80020');
+      r.heading('WEAKNESS:', lx, y, '#a80020', '#f0d0b0');
       y += 12;
       for (const l of wrap(`${page.weaknessText} ${page.hint}`, col)) {
         r.text(l, lx, y, '#2c1600');
@@ -488,7 +488,7 @@ export class PauseScene implements Scene {
   }
   draw(r: Renderer): void {
     r.box(44, 78, SCREEN_W - 88, 84, '#0000a8');
-    r.textCentered('PAUSED', 88, '#f8d878');
+    r.headingCentered('PAUSED', 87, '#f8d878');
     this.menu.draw(r, 106);
   }
 }
@@ -511,7 +511,7 @@ export class GameOverScene implements Scene {
   }
   draw(r: Renderer): void {
     r.clear('#000000');
-    r.textCentered('THE SQUAD IS DOWN', 80, '#e40058');
+    r.headingCentered('THE SQUAD IS DOWN', 80, '#e40058');
     r.textCentered('...BUT THE NIGHT IS NOT OVER', 96, '#bcbcbc');
     if (this.t > 0.8) this.menu.draw(r, 130);
   }

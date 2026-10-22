@@ -397,7 +397,7 @@ export class NightScene implements Scene {
     // entities by layer
     const ents = [...this.world.entities].sort((a, b) => (a.layer ?? 0) - (b.layer ?? 0));
     for (const e of ents) if (!e.dead || e === (this.player as Entity)) e.draw(r, cam.x, cam.y, alpha);
-    this.particles.draw((x, y, w, h, c) => r.rect(x, y, w, h, c), cam.x, cam.y);
+    this.particles.draw(r, cam.x, cam.y);
     drawForeground(r, this.theme, cam.x, this.world.time);
     if (this.heatmap) this.drawHeatmap(r, cam.x, cam.y);
     // hit / swap flash
@@ -407,21 +407,25 @@ export class NightScene implements Scene {
     r.textShadow(`LIVES ${this.lives}`, 180, 228, '#fcfcfc');
     if (this.opts.demo) r.textCentered('DEMO - PRESS ANY KEY', 228, Math.floor(this.world.time * 2) % 2 ? '#fcfcfc' : '#7c7c7c');
     switch (this.state) {
-      case 'intro':
-        r.box(8, 96, SCREEN_W - 16, 40, '#000000');
-        r.textCentered(this.night ? this.night.title : 'MIDNIGHT: CLOSE THE PORTAL', 108, '#f8d878');
-        r.textCentered(this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', 120, '#bcbcbc');
+      case 'intro': {
+        r.box(8, 92, SCREEN_W - 16, 50, '#000000');
+        const [head, place] = this.night ? this.night.title.split(': ') : ['MIDNIGHT', 'CLOSE THE PORTAL'];
+        r.headingCentered(head, 99, '#f8d878');
+        r.textCentered(place, 112, '#fcfcfc');
+        r.textCentered(this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', 126, '#bcbcbc');
         break;
+      }
       case 'cleared':
         r.box(24, 96, SCREEN_W - 48, 32, '#000000');
-        r.textCentered(this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', 108, '#f8d878');
+        r.headingCentered(this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', 108, '#f8d878');
         break;
       case 'midnight':
         r.box(24, 96, SCREEN_W - 48, 32, '#000000');
-        r.textCentered('MIDNIGHT. THE PORTAL OPENS.', 108, '#e40058');
+        r.headingCentered('MIDNIGHT!', 104, '#e40058');
+        r.textCentered('THE PORTAL OPENS.', 116, '#fcfcfc');
         break;
       case 'dying':
-        if (this.stateT > 0.8) r.textCentered(this.lives > 0 ? 'OUCH.' : 'THE SQUAD IS DOWN', 108, '#e40058');
+        if (this.stateT > 0.8) r.headingCentered(this.lives > 0 ? 'OUCH!' : 'THE SQUAD IS DOWN', 108, '#e40058');
         break;
     }
   }

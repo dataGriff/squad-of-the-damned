@@ -208,7 +208,7 @@ export class Valve extends Static {
     this.anim.update(dt);
     if (this.spray > 0) {
       this.spray -= dt;
-      if (Math.random() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100 });
+      if (Math.random() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100, kind: 'drop' });
     }
   }
   /** Rect of the falling water column below the valve. */
@@ -262,7 +262,7 @@ export class Lantern extends Static {
       }
     } else if (this.burning > 0) {
       this.burning -= dt;
-      if (Math.random() < 0.3) world.particles.emit({ x: this.x + Math.random() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40 });
+      if (Math.random() < 0.3) world.particles.emit({ x: this.x + Math.random() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40, kind: 'spark' });
       if (this.burning <= 0) {
         this.dead = true;
         world.add(new LanternRespawn(this.x - 4, this.restY - 4, 6));
@@ -388,7 +388,7 @@ export class Portal extends Static {
     this.anim.update(dt);
     if (this.closing > 0) {
       this.closing -= dt;
-      if (Math.random() < 0.6) world.particles.emit({ x: this.x + 16, y: this.y + 24, vx: (Math.random() - 0.5) * 120, vy: (Math.random() - 0.5) * 120, life: 0.5, colour: '#9878f8', size: 2, gravity: 0 });
+      if (Math.random() < 0.6) world.particles.emit({ x: this.x + 16, y: this.y + 24, vx: (Math.random() - 0.5) * 120, vy: (Math.random() - 0.5) * 120, life: 0.5, colour: '#9878f8', size: 2, gravity: 0, kind: 'spark' });
       if (this.closing <= 0) this.dead = true;
       return;
     }

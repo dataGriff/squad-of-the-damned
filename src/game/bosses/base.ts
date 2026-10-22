@@ -9,6 +9,7 @@ import type { Damageable, World } from '../world';
 import { weaknessMultiplier, type Weakness } from '../manual';
 import { BossMachine, type BossPhase } from './machine';
 import { WHITE } from '../enemies/base';
+import { SKULL, SKULL_PAL } from '../art/icons';
 
 export abstract class Boss implements Damageable {
   kind = 'boss';
@@ -178,15 +179,22 @@ export abstract class Boss implements Damageable {
     else if (this.machine.telegraphing) r.text('!', x + this.sw / 2 - 4, y - 10, '#f8d878');
   }
 
-  /** Boss HP bar at the top of the screen. */
+  /** Boss HP bar under the HUD: a skull, a framed bar, gold while vulnerable (#58). */
   drawHud(r: Renderer): void {
     if (this.introTime > 0) {
-      r.textCentered(this.name, 100, '#e40058');
+      r.box(40, 92, SCREEN_W - 80, 24, '#000000');
+      r.headingCentered(this.name, 100, '#e40058');
       return;
     }
-    const w = 96;
+    const w = 100;
     const x = (SCREEN_W - w) / 2;
-    r.rect(x - 1, 17, w + 2, 6, '#000000');
-    r.rect(x, 18, Math.round(w * this.machine.hpFraction), 4, this.vulnerable ? '#f8d878' : '#e40058');
+    r.sprite(SKULL, SKULL_PAL, x - 11, 19);
+    r.rect(x - 1, 19, w + 2, 7, '#000000');
+    r.rect(x - 1, 19, w + 2, 1, '#7c7c7c');
+    r.rect(x - 1, 25, w + 2, 1, '#3c3c3c');
+    r.rect(x + Math.round(w * this.machine.hpFraction), 21, w - Math.round(w * this.machine.hpFraction), 3, '#3c3c3c');
+    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 3, this.vulnerable ? '#f8d878' : '#e40058');
+    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 1, this.vulnerable ? '#fcfcfc' : '#f878f8');
   }
+
 }

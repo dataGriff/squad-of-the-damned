@@ -10,6 +10,8 @@ export interface NightDef {
   id: string;
   number: number;
   title: string;
+  /** Short place name for the treehouse menu. */
+  short: string;
   boss: string;
   page: string;
   song: string;
@@ -37,6 +39,7 @@ export const NIGHTS: NightDef[] = [
   {
     id: 'night1',
     number: 1,
+    short: 'ELM ST',
     title: 'NIGHT 1: THE HOUSE ON ELM ST',
     boss: 'vampire',
     page: 'vampire',
@@ -49,6 +52,7 @@ export const NIGHTS: NightDef[] = [
   {
     id: 'night2',
     number: 2,
+    short: 'THE GRAVEYARD',
     title: 'NIGHT 2: THE OLD GRAVEYARD',
     boss: 'giant',
     page: 'giant',
@@ -62,6 +66,7 @@ export const NIGHTS: NightDef[] = [
   {
     id: 'night3',
     number: 3,
+    short: 'MAPLE DRIVE',
     title: 'NIGHT 3: FULL MOON OVER MAPLE DRIVE',
     boss: 'wolfman',
     page: 'wolfman',
@@ -74,6 +79,7 @@ export const NIGHTS: NightDef[] = [
   {
     id: 'night4',
     number: 4,
+    short: 'THE MUSEUM',
     title: 'NIGHT 4: UNDER THE MUSEUM',
     boss: 'mummy',
     page: 'mummy',
@@ -86,6 +92,7 @@ export const NIGHTS: NightDef[] = [
   {
     id: 'night5',
     number: 5,
+    short: 'THE STORM DRAIN',
     title: 'NIGHT 5: THE STORM DRAIN',
     boss: 'gill',
     page: 'gill',
