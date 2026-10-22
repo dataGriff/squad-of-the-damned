@@ -56,7 +56,7 @@ export const LAMP_GLOW_PAL = pal('yellow', 'yellow', 'yellow');
 /** The lamp's pool of light flickers by cycling its one colour (#54). */
 export const LAMP_FLICKER = cycleList(['yellow', 'yellow', 'yellow', 'amber', 'yellow', 'yellow', 'sand', 'yellow', 'yellow', 'amber']);
 
-export const CRATE_PAL = pal('black', 'brown', 'tan');
+export const CRATE_PAL = pal('black', 'rust', 'tan');
 export const CRATE: Sprite = S('crate', [
   '1111111111111111', '1322222222222231', '1232222222222321', '1223222222223221', '1222322222232221', '1222232222322221', '1222223222322221', '1222222332222221', '1222222332222221', '1222223222322221', '1222232222322221', '1222322222232221', '1223222222223221', '1232222222222321', '1322222222222231', '1111111111111111',
 ]);
@@ -147,7 +147,7 @@ export const EXIT: Sprite = (() => {
   return p.toSprite('exit');
 })();
 
-export const BOULDER_PAL = pal('darkGrey', 'grey', 'lightGrey');
+export const BOULDER_PAL = pal('black', 'grey', 'lightGrey');
 export const BOULDER: Sprite = S('boulder', ['..111111..', '.12222221.', '1223222221', '1222222221', '1222222321', '1222222221', '1322222221', '1222222221', '.12222221.', '..111111..']);
 export const BANDAGE_PAL = pal('darkBrown', 'tan', 'cream');
 export const BANDAGE: Sprite = S('bandage', ['1111', '2332', '3223', '1111']);

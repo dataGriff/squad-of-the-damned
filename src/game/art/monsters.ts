@@ -32,7 +32,7 @@ function mirrorX(p: PixelArt): PixelArt {
 /* Fodder                                                               */
 /* ================================================================== */
 
-export const BAT_PAL = pal('black', 'purple', 'red');
+export const BAT_PAL = pal('black', 'violet', 'red');
 function bat(frame: number): Sprite {
   const p = new PixelArt(16, 12);
   // body + ears + eyes

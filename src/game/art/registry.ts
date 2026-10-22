@@ -126,25 +126,42 @@ function itemArt(): ArtEntry[] {
   ];
 }
 
-const TILE_GIDS: Record<number, ArtCategory> = { 1: 'tile', 2: 'tile', 3: 'tile', 4: 'tile', 5: 'tile', 6: 'hazard', 7: 'tile', 8: 'hazard', 9: 'tile', 10: 'tile', 11: 'tile', 12: 'tile', 13: 'tile', 14: 'tile' };
+/** Tile ids by kind; spikes and water are hazards the player must read. */
+const TILE_KINDS: Record<number, [ArtCategory, string]> = {
+  1: ['tile', 'solid'],
+  2: ['tile', 'solid'],
+  14: ['tile', 'solid'],
+  3: ['tile', 'platform'],
+  4: ['tile', 'ladder'],
+  5: ['tile', 'cracked'],
+  7: ['tile', 'vent'],
+  9: ['tile', 'deco'],
+  10: ['tile', 'deco'],
+  11: ['tile', 'deco'],
+  12: ['tile', 'lamp'],
+  13: ['tile', 'door'],
+  6: ['hazard', 'spike'],
+  8: ['hazard', 'water'],
+};
 
-/** Every (sprite, palette) tileSprite() can return, per theme and category. */
+/** Every (sprite, palette) tileSprite() can return, per theme and kind. */
 function tileArt(): ArtEntry[] {
   const out: ArtEntry[] = [];
   for (const theme of Object.keys(THEMES) as Theme[]) {
-    const groups = new Map<ArtCategory, { ss: Sprite[]; ps: SpritePalette[] }>();
-    for (const [gid, category] of Object.entries(TILE_GIDS))
+    const groups = new Map<string, { category: ArtCategory; ss: Sprite[]; ps: SpritePalette[] }>();
+    for (const [gid, [category, kind]] of Object.entries(TILE_KINDS))
       for (let mask = 0; mask < 16; mask++)
         for (let v = 0; v < 4; v++)
           for (let frame = 0; frame < 12; frame++) {
             const t = tileSprite(Number(gid), theme, frame, mask, v);
             if (!t) continue;
-            const g = groups.get(category) ?? { ss: [], ps: [] };
+            const id = `${category}:${kind}:${theme}`;
+            const g = groups.get(id) ?? { category, ss: [], ps: [] };
             g.ss.push(t.sprite);
             g.ps.push(t.pal);
-            groups.set(category, g);
+            groups.set(id, g);
           }
-    for (const [category, g] of groups) out.push({ id: `${category}:${theme}`, category, theme, sprites: sprites(g.ss), palettes: pals(g.ps) });
+    for (const [id, g] of groups) out.push({ id, category: g.category, theme, sprites: sprites(g.ss), palettes: pals(g.ps) });
   }
   return out;
 }

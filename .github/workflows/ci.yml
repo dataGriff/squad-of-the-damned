@@ -16,6 +16,7 @@ jobs:
       - run: npm test
       - run: npm run check:palette
       - run: npm run check:colorblind
+      - run: npm run check:readability
       - run: npm run export:levels && git diff --exit-code src/game/levels/json
       - run: npm run build
       - uses: actions/upload-artifact@v4

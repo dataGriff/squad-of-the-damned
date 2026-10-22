@@ -657,7 +657,7 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
     { frames: [ironFence('bd_gy_fence')], pal: pal('black', 'darkGrey', 'grey'), y: 162, factor: 0.65 },
   ],
   mansion: [
-    { frames: [wallpaper('bd_mn_paper')], pal: pal('darkRed', 'darkBrown', 'maroon'), y: 26, factor: 0.5 },
+    { frames: [wallpaper('bd_mn_paper')], pal: pal('darkBrown', 'darkRed', 'maroon'), y: 26, factor: 0.5 },
     { frames: [moulding('bd_mn_moulding')], pal: pal('black', 'darkBrown', 'brown'), y: 16, factor: 0.5 },
     { frames: [glow('bd_mn_glow', 22)], pal: pal('maroon', 'maroon', 'maroon'), y: 50, factor: 0.5, every: 128, offset: 102, cycle: { index: 1, colours: cycleList(['maroon', 'maroon', 'crimson', 'maroon']), fps: 5 } },
     { frames: [mansionWindow('bd_mn_window')], pal: pal('darkBrown', 'navy', 'periwinkle'), y: 34, factor: 0.5, every: 256, offset: 30, cycle: { index: 3, colours: cycleList(['periwinkle', 'mist', 'periwinkle', 'blue']), fps: 1 } },

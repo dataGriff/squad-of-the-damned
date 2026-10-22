@@ -42,8 +42,8 @@ export const STYLES = {
   bodySoft: { face: 'thin', colour: 'textSoft', lineHeight: 10 },
   /** Instructions and unselected menu items. */
   hint: { face: 'thin', colour: 'textDim', lineHeight: 10 },
-  /** Footers. */
-  caption: { face: 'thin', colour: 'textFaint', lineHeight: 10 },
+  /** Footers: as dim as hints (anything fainter falls under 3:1 on black, #64). */
+  caption: { face: 'thin', colour: 'textDim', lineHeight: 10 },
   /** Thin text with a drop shadow, for text over scenery. */
   label: { face: 'thin', colour: 'text', shadow: 'black', lineHeight: 10 },
   /** On paper (the manual, the page-found popup). */
