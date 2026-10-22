@@ -6,8 +6,9 @@ import { allTileSprites } from './tiles';
 import { allBackdropSprites } from './backdrops';
 import { allScenerySprites } from './scenery';
 import { GLINT } from '../effects';
+import { allPropSprites } from './props';
 
 /** Every sprite in the game, for the palette and colour-blind checks. */
 export function allSprites(): Sprite[] {
-  return [...allKidSprites(), ...allMonsterSprites(), ...allItemSprites(), ...allTileSprites(), ...allBackdropSprites(), ...allScenerySprites(), ...GLINT.frames];
+  return [...allKidSprites(), ...allMonsterSprites(), ...allItemSprites(), ...allTileSprites(), ...allBackdropSprites(), ...allScenerySprites(), ...GLINT.frames, ...allPropSprites()];
 }

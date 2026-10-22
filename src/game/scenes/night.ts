@@ -19,7 +19,8 @@ import { spawnEnemy, Bat } from '../enemies/fodder';
 import { spawnBoss } from '../bosses';
 import type { Boss } from '../bosses/base';
 import { tileSprite, type Theme } from '../art/tiles';
-import { drawBackdrop, Storm } from '../backdrop';
+import { drawBackdrop, drawForeground, Storm } from '../backdrop';
+import { placeProps, type PlacedProp } from '../dressing';
 import { maskAt } from '../art/autotiles';
 import { hash2 } from '../../engine/pixelart';
 import { SONGS } from '../music';
@@ -66,6 +67,7 @@ export class NightScene implements Scene {
   private portalSpawn = 0;
   private id: string;
   heatmap = false;
+  private props: PlacedProp[] = [];
   /** Lightning over the graveyard and the storm drain (#54). */
   private storm = new Storm();
 
@@ -78,6 +80,7 @@ export class NightScene implements Scene {
     const json = LEVEL_JSON[this.id];
     this.map = new TileMap(json);
     this.theme = this.map.theme as Theme;
+    this.props = placeProps(this.map, this.theme);
     const save = this.game.save.data;
     const kids = save.kidsUnlocked as KidId[];
     this.squad = new Squad(kids, Math.max(save.silver, 3), this.squad?.active);
@@ -379,10 +382,16 @@ export class NightScene implements Scene {
         if (t) r.sprite(t.sprite, t.pal, tx * TILE - cam.x, ty * TILE - cam.y);
       }
     }
+    // props stand on the floor behind everyone (#55)
+    for (const pp of this.props) {
+      const x = pp.x - cam.x;
+      if (x > -32 && x < SCREEN_W) r.sprite(pp.prop.sprite, pp.prop.pal, x, pp.y - cam.y);
+    }
     // entities by layer
     const ents = [...this.world.entities].sort((a, b) => (a.layer ?? 0) - (b.layer ?? 0));
     for (const e of ents) if (!e.dead || e === (this.player as Entity)) e.draw(r, cam.x, cam.y, alpha);
     this.particles.draw((x, y, w, h, c) => r.rect(x, y, w, h, c), cam.x, cam.y);
+    drawForeground(r, this.theme, cam.x, this.world.time);
     if (this.heatmap) this.drawHeatmap(r, cam.x, cam.y);
     // hit / swap flash
     if (this.world.flash > 0) r.dither(0, 0, SCREEN_W, SCREEN_H, this.world.flashColour, this.world.flash & 1);

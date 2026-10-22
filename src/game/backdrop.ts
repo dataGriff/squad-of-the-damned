@@ -1,9 +1,11 @@
 /** Draws a theme's parallax backdrop layers (far to near) behind the tiles. */
 import type { Renderer } from '../engine/render';
 import { SCREEN_W } from '../engine/constants';
-import { BACKDROPS } from './art/backdrops';
+import { BACKDROPS, type BackLayer } from './art/backdrops';
+import { FOREGROUND } from './art/props';
+import type { Sprite } from '../engine/sprites';
 import { THEMES, type Theme } from './art/tiles';
-import { cycled, pal } from './palette';
+import { cycled, pal, type SpritePalette } from './palette';
 
 /**
  * Lightning (#54): 'strike' turns the sky white and every other layer into a
@@ -32,17 +34,27 @@ export function drawBackdrop(r: Renderer, theme: Theme, camX: number, t: number,
       else if (l.x !== undefined && f.name.includes('halo')) continue;
       else if (l.x === undefined) p = STRIKE_SILHOUETTE;
     } else if (lightning === 'pulse' && l.sky) p = PULSE_SKY;
-    if (l.x !== undefined) {
-      r.sprite(f, p, l.x, l.y);
-      continue;
-    }
-    const every = l.every ?? f.w;
-    const shift = Math.round(camX * l.factor + (l.drift ?? 0) * t) - (l.offset ?? 0);
-    let x = -(((shift % every) + every) % every);
-    // step back far enough that a sprite wider than its spacing still covers the left edge
-    while (x + f.w > 0) x -= every;
-    for (x += every; x < SCREEN_W; x += every) r.sprite(f, p, x, l.y);
+    drawLayer(r, l, f, p, camX, t);
   }
+}
+
+/** Draw one layer: pinned at `x`, or repeated across the screen with parallax and drift. */
+function drawLayer(r: Renderer, l: BackLayer, f: Sprite, p: SpritePalette, camX: number, t: number): void {
+  if (l.x !== undefined) {
+    r.sprite(f, p, l.x, l.y);
+    return;
+  }
+  const every = l.every ?? f.w;
+  const shift = Math.round(camX * l.factor + (l.drift ?? 0) * t) - (l.offset ?? 0);
+  let x = -(((shift % every) + every) % every);
+  // step back far enough that a sprite wider than its spacing still covers the left edge
+  while (x + f.w > 0) x -= every;
+  for (x += every; x < SCREEN_W; x += every) r.sprite(f, p, x, l.y);
+}
+
+/** Near silhouettes drawn in front of everything except the HUD (#55). */
+export function drawForeground(r: Renderer, theme: Theme, camX: number, t: number): void {
+  for (const l of FOREGROUND[theme]) drawLayer(r, l, l.frames[0], l.pal, camX, t);
 }
 
 /**
