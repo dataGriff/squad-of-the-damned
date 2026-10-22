@@ -6,9 +6,8 @@ import { audio } from '../engine/audio';
 import { TILE } from '../engine/constants';
 import * as A from './art/items';
 import { drawGlint } from './effects';
-import { cycled, cycleList, rotated } from './palette';
+import { cycled, rotated } from './palette';
 
-const LAMP_FLICKER = cycleList(['yellow', 'yellow', 'yellow', 'amber', 'yellow', 'yellow', 'sand', 'yellow', 'yellow', 'amber']);
 import type { Entity, World } from './world';
 import type { MapObject } from '../engine/tilemap';
 import { rand } from '../engine/random';
@@ -66,7 +65,7 @@ export class Lamp extends Static {
   draw(r: Renderer, cx: number, cy: number): void {
     if (this.lit) {
       const t = clock.now() + this.index;
-      r.sprite(A.LAMP_GLOW, cycled(A.LAMP_GLOW_PAL, 1, LAMP_FLICKER, t, 6), this.x - 2 + 8 - 24 - cx, this.y + 8 - 8 - cy);
+      r.sprite(A.LAMP_GLOW, cycled(A.LAMP_GLOW_PAL, 1, A.LAMP_FLICKER, t, 6), this.x - 2 + 8 - 24 - cx, this.y + 8 - 8 - cy);
     }
     r.sprite(this.lit ? A.LAMP_ON : A.LAMP_OFF, A.LAMP_PAL, this.x - 2 - cx, this.y - cy);
   }

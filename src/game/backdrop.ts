@@ -7,6 +7,7 @@ import type { Sprite } from '../engine/sprites';
 import { THEMES, type Theme } from './art/tiles';
 import { cycled, pal, type SpritePalette } from './palette';
 import { rand as gameRand } from '../engine/random';
+import { SHADOW_PAL } from './art/common';
 
 /**
  * Lightning (#54): 'strike' turns the sky white and every other layer into a
@@ -16,7 +17,6 @@ import { rand as gameRand } from '../engine/random';
 export type Lightning = 'none' | 'strike' | 'pulse';
 
 const STRIKE_SKY = pal('lavender', 'white', 'white');
-const STRIKE_SILHOUETTE = pal('black', 'black', 'darkGrey');
 const PULSE_SKY = pal('indigo', 'violet', 'violet');
 
 export function drawBackdrop(r: Renderer, theme: Theme, camX: number, t: number, lightning: Lightning = 'none'): void {
@@ -25,18 +25,29 @@ export function drawBackdrop(r: Renderer, theme: Theme, camX: number, t: number,
   r.clear(lightning === 'strike' && outdoors ? 'white' : THEMES[theme].sky);
   for (const l of layers) {
     const f = l.frames.length > 1 ? l.frames[Math.floor(t * (l.fps ?? 4)) % l.frames.length] : l.frames[0];
-    let p = l.cycle ? cycled(l.pal, l.cycle.index, l.cycle.colours, t, l.cycle.fps) : l.pal;
-    if (!outdoors) {
-      // underground: the flash comes down through the grates and lights the tunnel;
-      // with reduced flash only the light shafts brighten, steadily
-      if (l.strikePal && (lightning === 'strike' || (lightning === 'pulse' && f.name.includes('shafts')))) p = l.strikePal;
-    } else if (lightning === 'strike') {
-      if (l.sky) p = STRIKE_SKY;
-      else if (l.x !== undefined && f.name.includes('halo')) continue;
-      else if (l.x === undefined) p = STRIKE_SILHOUETTE;
-    } else if (lightning === 'pulse' && l.sky) p = PULSE_SKY;
+    const p = layerPalette(l, f, t, outdoors, lightning);
+    if (p === null) continue;
     drawLayer(r, l, f, p, camX, t);
   }
+}
+
+/**
+ * The palette a layer is drawn in at time t: its own (cycled if it cycles),
+ * or a lightning palette. Null means the layer is hidden (the moon's halo
+ * during a strike). Shared with the art registry, which enumerates it.
+ */
+export function layerPalette(l: BackLayer, f: Sprite, t: number, outdoors: boolean, lightning: Lightning): SpritePalette | null {
+  const p = l.cycle ? cycled(l.pal, l.cycle.index, l.cycle.colours, t, l.cycle.fps) : l.pal;
+  if (!outdoors) {
+    // underground: the flash comes down through the grates and lights the tunnel;
+    // with reduced flash only the light shafts brighten, steadily
+    if (l.strikePal && (lightning === 'strike' || (lightning === 'pulse' && f.name.includes('shafts')))) return l.strikePal;
+  } else if (lightning === 'strike') {
+    if (l.sky) return STRIKE_SKY;
+    if (l.x !== undefined && f.name.includes('halo')) return null;
+    if (l.x === undefined) return SHADOW_PAL;
+  } else if (lightning === 'pulse' && l.sky) return PULSE_SKY;
+  return p;
 }
 
 /** Draw one layer: pinned at `x`, or repeated across the screen with parallax and drift. */

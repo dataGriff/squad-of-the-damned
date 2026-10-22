@@ -17,13 +17,15 @@ import { NIGHTS } from './game/levels/nights';
 import { SAFE, contains } from './game/design/layout';
 import { hasGlyph } from './engine/font';
 import { displayGlyph } from './engine/display-font';
+import { isRegisteredPair } from './game/art/registry';
+import type { SpritePalette } from './game/palette';
 
 const DT = 1 / 60;
 
 export interface Shot {
   /** The 256×240 frame as a PNG data URL. */
   png: string;
-  /** Text drawn outside the safe area, or with characters the font lacks (#61). */
+  /** Text outside the safe area or missing glyphs (#61), sprites in unregistered palettes (#63). */
   problems: string[];
 }
 
@@ -171,9 +173,14 @@ class Capturer {
   frame(): Shot {
     const r = this.game.renderer;
     r.textLog = [];
+    const drawn = new Map<string, { name: string; pal: SpritePalette }>();
+    r.atlas.onGet = (s, p) => drawn.set(`${s.name}|${p.join(',')}`, { name: s.name, pal: p });
     this.game.draw(1);
     r.present(0);
+    r.atlas.onGet = null;
     const problems: string[] = [];
+    // every sprite drawn must be in the art registry with the palette it was drawn in (#63)
+    for (const { name, pal } of drawn.values()) if (!isRegisteredPair(name, pal)) problems.push(`sprite '${name}' drawn in unregistered palette ${pal.slice(1).join(' ')}`);
     for (const t of r.textLog) {
       if (!contains(SAFE, t)) problems.push(`'${t.text}' at ${t.x},${t.y} (${t.w}×${t.h}) is outside the safe area`);
       const missing = [...t.text].filter((ch) => ch !== ' ' && !hasGlyph(ch) && !(t.face === 'bold' && displayGlyph(ch)));

@@ -13,12 +13,12 @@ import { tileSprite } from '../art/tiles';
 import { AIR_U } from '../art/autotiles';
 import { drawBackdrop, Storm } from '../backdrop';
 import { BAT, BAT_PAL, CREATURE_ART } from '../art/monsters';
-import { cycled, cycleList } from '../palette';
-import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, ROPE_LADDER, ROPE_PAL, TREEHOUSE, TREEHOUSE_PAL } from '../art/scenery';
+import { cycled } from '../palette';
+import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, ROPE_LADDER, ROPE_PAL, TREEHOUSE, TREEHOUSE_FLICKER, TREEHOUSE_PAL } from '../art/scenery';
+import { SILHOUETTE_PAL } from '../art/common';
 import { NightScene } from './night';
 import { StoryScene } from './story';
 import { CHAPTERS, beforeChapter, storySoFar } from '../story';
-import { solid } from '../design/tokens';
 import { measure, paragraph, wrapTo, write } from '../design/type';
 import { SAFE, centred } from '../design/layout';
 import { Menu, ROW_HEIGHT } from '../ui/menu';
@@ -26,8 +26,6 @@ import { Dialog } from '../ui/dialog';
 import { panel } from '../ui/panel';
 import { keyName, prompt } from '../ui/prompt';
 
-const WINDOW_FLICKER = cycleList(['yellow', 'yellow', 'sand', 'yellow', 'amber', 'yellow']);
-const GREY = solid('darkGrey');
 const SAFE_RIGHT = SAFE.x + SAFE.w;
 const SAFE_BOTTOM = SAFE.y + SAFE.h;
 /** The y of a line of text sitting on the bottom of the safe area. */
@@ -199,7 +197,7 @@ export class HubScene implements Scene {
     // the oak and the treehouse
     r.sprite(OAK_TRUNK, OAK_TRUNK_PAL, 92, 72);
     r.sprite(OAK_CANOPY, OAK_CANOPY_PAL, 0, 6);
-    r.sprite(TREEHOUSE, cycled(TREEHOUSE_PAL, 3, WINDOW_FLICKER, this.t, 3), 60, 32);
+    r.sprite(TREEHOUSE, cycled(TREEHOUSE_PAL, 3, TREEHOUSE_FLICKER, this.t, 3), 60, 32);
     r.sprite(ROPE_LADDER, ROPE_PAL, 150, 100);
     // grass
     for (let x = 0; x < SCREEN_W; x += 16) {
@@ -410,7 +408,7 @@ export class ManualScene implements Scene {
     const scale = Math.max(1, Math.min(3, Math.floor(Math.min(84 / art.sprite.w, 80 / art.sprite.h))));
     r.rect(18, 30, 98, 88, 'inkSoft');
     r.rect(20, 32, 94, 84, found ? 'panel' : 'edge');
-    r.spriteScaled(art.sprite, found ? art.pal : GREY, 67 - (art.sprite.w * scale) / 2, 112 - art.sprite.h * scale, scale);
+    r.spriteScaled(art.sprite, found ? art.pal : SILHOUETTE_PAL, 67 - (art.sprite.w * scale) / 2, 112 - art.sprite.h * scale, scale);
     wrapTo('paperHeading', found ? page.creature : '???', 96).forEach((l, i) => write(r, 'paperHeading', l, 18, 123 + i * 11));
     write(r, 'paperAccent', page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148);
     const lx = SCREEN_W / 2 + 8;

@@ -41,10 +41,6 @@ export const PARTICLE_FRAMES: Record<Exclude<ParticleKind, 'square'>, Sprite[]> 
   drop: [defineSprite('pt_drop_0', ['1', '1']), defineSprite('pt_drop_1', ['1', '1']), defineSprite('pt_drop_2', ['1'])],
 };
 
-export function allParticleSprites(): Sprite[] {
-  return Object.values(PARTICLE_FRAMES).flat();
-}
-
 export class Particles {
   list: Particle[] = [];
   max = 200;

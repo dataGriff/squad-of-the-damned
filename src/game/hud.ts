@@ -5,20 +5,18 @@
  */
 import type { Renderer } from '../engine/render';
 import { SCREEN_W } from '../engine/constants';
-import { KID_PORTRAITS } from './art/kids';
+import { KID_PORTRAITS, PORTRAIT_DIM_PAL } from './art/kids';
+import { SILHOUETTE_PAL } from './art/common';
 import { KIDS, KID_ORDER, type Squad } from './squad';
 import { SILVER, SILVER_PAL } from './art/items';
 import { CLOCK, CLOCK_PAL, HEART_EMPTY, HEART_EMPTY_PAL, HEART_FULL, HEART_PAL, LIFE, LIFE_PAL } from './art/icons';
 import { clock } from '../engine/clock';
-import { solid, type Colour } from './design/tokens';
-import { pal } from './palette';
+import type { Colour } from './design/tokens';
 import { SAFE } from './design/layout';
 import { write } from './design/type';
 import { panel } from './ui/panel';
 import { prompt, type PromptContext } from './ui/prompt';
 
-const LOCKED = solid('darkGrey');
-const INACTIVE = pal('darkGrey', 'grey', 'lightGrey');
 
 /** The HUD bar covers the top overscan band plus one row of content. */
 export const HUD_H = SAFE.y + 18;
@@ -62,7 +60,7 @@ export function drawHud(r: Renderer, h: HudState): void {
     r.ctx.beginPath();
     r.ctx.rect(x + 1, Y + 1, 16, 13);
     r.ctx.clip();
-    r.sprite(s, !unlocked ? LOCKED : active ? KIDS[id].palette : INACTIVE, x + 9 - Math.floor(s.w / 2), Y + 2);
+    r.sprite(s, !unlocked ? SILHOUETTE_PAL : active ? KIDS[id].palette : PORTRAIT_DIM_PAL, x + 9 - Math.floor(s.w / 2), Y + 2);
     r.ctx.restore();
   });
   // shared hearts

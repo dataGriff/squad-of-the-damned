@@ -1,6 +1,6 @@
 /** Pickups, projectiles, props and UI sprites. */
 import { anim, defineSprite, type AnimDef, type Sprite } from '../../engine/sprites';
-import { pal, type SpritePalette } from '../palette';
+import { cycleList, pal } from '../palette';
 import { BAYER4, PixelArt } from '../../engine/pixelart';
 
 const S = defineSprite;
@@ -53,8 +53,10 @@ export const LAMP_GLOW: Sprite = (() => {
   return p.toSprite('lamp_glow');
 })();
 export const LAMP_GLOW_PAL = pal('yellow', 'yellow', 'yellow');
+/** The lamp's pool of light flickers by cycling its one colour (#54). */
+export const LAMP_FLICKER = cycleList(['yellow', 'yellow', 'yellow', 'amber', 'yellow', 'yellow', 'sand', 'yellow', 'yellow', 'amber']);
 
-export const CRATE_PAL = pal('darkBrown', 'brown', 'tan');
+export const CRATE_PAL = pal('black', 'brown', 'tan');
 export const CRATE: Sprite = S('crate', [
   '1111111111111111', '1322222222222231', '1232222222222321', '1223222222223221', '1222322222232221', '1222232222322221', '1222223222322221', '1222222332222221', '1222222332222221', '1222223222322221', '1222232222322221', '1222322222232221', '1223222222223221', '1232222222222321', '1322222222222231', '1111111111111111',
 ]);
@@ -72,7 +74,7 @@ export const PROJ_PAL = pal('darkGrey', 'lightGrey', 'white');
 export const PEBBLE: Sprite = S('pebble', ['.11.', '1221', '1221', '.11.']);
 export const SILVER_SHOT: Sprite = S('silver_shot', ['.11.', '1331', '1331', '.11.']);
 export const CHARGED_SHOT: Sprite = S('charged_shot', ['.1111.', '123321', '123321', '.1111.']);
-export const GARLIC_PAL = pal('darkBrown', 'cream', 'olive');
+export const GARLIC_PAL = pal('darkBrown', 'cream', 'green');
 export const GARLIC_BOMB: AnimDef = anim(
   [S('garlic_0', ['...3....', '..13....', '.12221..', '12222221', '12222221', '12222221', '.122221.', '..1111..']), S('garlic_1', ['....3...', '...31...', '.12221..', '12222221', '12222221', '12222221', '.122221.', '..1111..'])],
   6,
@@ -90,7 +92,7 @@ export const LANTERN: AnimDef = anim(
   [S('lantern_0', ['...11...', '...11...', '.111111.', '.133331.', '.133331.', '.133331.', '.122221.', '..1111..']), S('lantern_1', ['...11...', '...11...', '.111111.', '.133331.', '.132231.', '.133331.', '.122221.', '..1111..'])],
   4,
 );
-export const FIRE_PAL = pal('brightRed', 'orange', 'yellow');
+export const FIRE_PAL = pal('darkRed', 'orange', 'yellow');
 export const FIRE: AnimDef = anim(
   [S('fire_0', ['...1....', '..13.1..', '.1322.1.', '.123331.', '12333321', '12233221', '.122221.', '..1111..']), S('fire_1', ['....1...', '.1.31...', '.1.2231.', '.133321.', '12333321', '12233221', '.122221.', '..1111..'])],
   10,
@@ -129,7 +131,7 @@ export const PORTAL: AnimDef = anim(
   6,
 );
 
-export const DOOR_PAL = pal('darkBrown', 'brown', 'tan');
+export const DOOR_PAL = pal('black', 'brown', 'tan');
 /** Arched oak door with iron straps and a ring knocker. */
 export const EXIT: Sprite = (() => {
   const p = new PixelArt(16, 32);
@@ -151,13 +153,3 @@ export const BANDAGE_PAL = pal('darkBrown', 'tan', 'cream');
 export const BANDAGE: Sprite = S('bandage', ['1111', '2332', '3223', '1111']);
 export const BUBBLE_PAL = pal('drainBlue', 'skyBlue', 'iceBlue');
 export const BUBBLE: Sprite = S('bubble', ['.11.', '1321', '1221', '.11.']);
-export const TORCH_PAL = pal('darkBrown', 'brown', 'yellow');
-
-export const ITEM_PALETTES: Record<string, SpritePalette> = { page: PAGE_PAL, lamp: LAMP_PAL, crate: CRATE_PAL, silver: SILVER_PAL, heart: HEART_PAL };
-
-export function allItemSprites(): Sprite[] {
-  return [
-    ...PAGE.frames, LAMP_OFF, LAMP_ON, LAMP_GLOW, CRATE, ...SILVER.frames, HEART, PEBBLE, SILVER_SHOT, CHARGED_SHOT, ...GARLIC_BOMB.frames, ...STUN_CLOUD.frames,
-    ...LANTERN.frames, ...FIRE.frames, VALVE, ...SPRAY.frames, SLUICE, SLUICE_BROKEN, SEAL_OFF, SEAL_ON, ...PORTAL.frames, EXIT, BOULDER, BANDAGE, BUBBLE,
-  ];
-}

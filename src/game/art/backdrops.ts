@@ -686,22 +686,3 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
   ],
   hub: [],
 };
-
-export function allBackdropSprites(): Sprite[] {
-  const seen = new Set<string>();
-  const out: Sprite[] = [];
-  for (const layers of Object.values(BACKDROPS))
-    for (const l of layers)
-      for (const f of l.frames)
-        if (!seen.has(f.name)) {
-          seen.add(f.name);
-          out.push(f);
-        }
-  return out;
-}
-
-export function allBackdropPalettes(): { name: string; pal: SpritePalette }[] {
-  const out: { name: string; pal: SpritePalette }[] = [];
-  for (const [theme, layers] of Object.entries(BACKDROPS)) layers.forEach((l, i) => out.push({ name: `${theme}:${i}:${l.frames[0].name}`, pal: l.pal }));
-  return out;
-}

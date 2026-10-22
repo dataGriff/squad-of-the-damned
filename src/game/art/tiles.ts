@@ -6,8 +6,8 @@ import { defineSprite, type Sprite } from '../../engine/sprites';
 import { cycled, cycleList, pal, type PaletteName, type SpritePalette } from '../palette';
 
 const WATER_CYCLE = cycleList(['skyBlue', 'iceBlue', 'white', 'iceBlue']);
-const SLIME_CYCLE = cycleList(['lime', 'yellow', 'lime', 'olive']);
-import { AIR_U, allAutoTileSprites, autoTile } from './autotiles';
+const SLIME_CYCLE = cycleList(['yellow', 'mint', 'yellow', 'white']);
+import { AIR_U, autoTile } from './autotiles';
 
 const S = defineSprite;
 
@@ -110,10 +110,4 @@ export function tileSprite(gid: number, theme: Theme, frame = 0, mask = AIR_U, v
     default:
       return null;
   }
-}
-
-export function allTileSprites(): Sprite[] {
-  const out: Sprite[] = [...allAutoTileSprites(), LAMP_TILE, DOOR_TILE];
-  for (const d of Object.values(DECO)) out.push(...d);
-  return out;
 }

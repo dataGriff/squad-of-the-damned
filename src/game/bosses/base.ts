@@ -8,7 +8,7 @@ import type { SpritePalette } from '../palette';
 import type { Damageable, World } from '../world';
 import { weaknessMultiplier, type Weakness } from '../manual';
 import { BossMachine, type BossPhase } from './machine';
-import { WHITE } from '../enemies/base';
+import { FLASH_PAL } from '../art/common';
 import { SKULL, SKULL_PAL } from '../art/icons';
 import { rand } from '../../engine/random';
 import { HUD_H } from '../hud';
@@ -173,8 +173,8 @@ export abstract class Boss implements Damageable {
     const x = b.px + (b.x - b.px) * alpha - cx + b.w / 2 - this.sw / 2 + recoil;
     const y = b.py + (b.y - b.py) * alpha - cy + b.h - s.h;
     let pal: SpritePalette = this.pal;
-    if (this.flashTime > 0) pal = WHITE;
-    else if (this.defeatTime >= 0 && (scene === undefined || this.defeatTime < 0.25) && Math.floor(this.defeatTime * 12) % 2 === 0) pal = WHITE;
+    if (this.flashTime > 0) pal = FLASH_PAL;
+    else if (this.defeatTime >= 0 && (scene === undefined || this.defeatTime < 0.25) && Math.floor(this.defeatTime * 12) % 2 === 0) pal = FLASH_PAL;
     // default ending: flicker out, skipping more frames as it goes (no alpha on a NES)
     const fading = scene === undefined && this.defeatTime > 1.5 ? (this.defeatTime - 1.5) * 2 : 0;
     if (!fading || Math.floor(this.defeatTime * 60) % 4 >= Math.ceil(fading * 4)) r.sprite(s, pal, x, y, this.dir > 0);

@@ -335,7 +335,3 @@ export const FOREGROUND: Record<Theme, BackLayer[]> = {
   ],
   hub: [],
 };
-
-export function allPropSprites(): Sprite[] {
-  return [...Object.values(PROPS).flat().map((p) => p.sprite), ...Object.values(FOREGROUND).flatMap((ls) => ls.flatMap((l) => l.frames))];
-}

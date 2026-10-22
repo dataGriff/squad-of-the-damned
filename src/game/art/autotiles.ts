@@ -330,7 +330,7 @@ const WATER_PAL: Record<Theme, SpritePalette> = {
   suburb: pal('navy', 'blue', 'skyBlue'),
   graveyard: pal('navy', 'indigo', 'periwinkle'),
   mansion: pal('navy', 'blue', 'skyBlue'),
-  sewer: pal('bogGreen', 'olive', 'lime'),
+  sewer: pal('bogGreen', 'lime', 'yellow'),
   drain: pal('navy', 'blue', 'iceBlue'),
   hub: pal('navy', 'blue', 'skyBlue'),
 };
@@ -385,21 +385,6 @@ export function autoTile(kind: 'solid' | 'cracked' | 'pillar' | 'platform' | 'la
       return { sprite: b.water[mask & AIR_U ? 1 : 0][frame % 3], pal: WATER_PAL[theme] };
   }
 }
-
-export function allAutoTileSprites(): Sprite[] {
-  const out: Sprite[] = [SPIKE, VENT];
-  for (const b of Object.values(BANKS)) {
-    out.push(...b.solid.flat(), ...b.cracked.flat(), ...b.pillar, ...b.platform.flat(), ...b.ladder, ...b.water.flat());
-  }
-  return out;
-}
-
-export const AUTOTILE_PALETTES: { name: string; pal: SpritePalette }[] = [
-  { name: 'spike', pal: SPIKE_PAL },
-  { name: 'vent', pal: VENT_PAL },
-  ...Object.entries(PLATFORM_PAL).map(([n, p]) => ({ name: `platform:${n}`, pal: p })),
-  ...Object.entries(WATER_PAL).map(([n, p]) => ({ name: `water:${n}`, pal: p })),
-];
 
 /** Which neighbours of a tile are "open" for auto-tiling purposes. */
 export function maskAt(kindAt: (tx: number, ty: number) => string, tx: number, ty: number, height: number): number {

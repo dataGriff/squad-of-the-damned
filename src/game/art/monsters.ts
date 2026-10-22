@@ -504,23 +504,7 @@ export const CREATURE_ART: Record<string, { sprite: Sprite; pal: SpritePalette }
   rat: { sprite: RAT.frames[0], pal: RAT_PAL },
 };
 
-export function allMonsterSprites(): Sprite[] {
-  const seen = new Set<string>();
-  const out: Sprite[] = [];
-  const add = (s: Sprite) => {
-    if (!seen.has(s.name)) {
-      seen.add(s.name);
-      out.push(s);
-    }
-  };
-  for (const a of [BAT, RAT, HAND, FROG]) a.frames.forEach(add);
-  for (const b of Object.values(BOSS_ANIMS)) for (const a of Object.values(b)) a.frames.forEach(add);
-  allAnimationPassSprites().forEach(add);
-  return out;
-}
-
 void mirrorX;
-
 
 /* ================================================================== */
 /* Animation pass (#53): wind-ups, hit reactions, defeat scenes         */
@@ -674,7 +658,3 @@ export const FROG_SQUASH = (() => {
   rim(p, 2, 1);
   return p.toSprite('frog_squash');
 })();
-
-export function allAnimationPassSprites(): Sprite[] {
-  return [GIANT_HEAVE, GIANT_SIT, MR_GREY, ...UNRAVEL, BAT_DEAD, RAT_DEAD, FROG_SQUASH, WOLFMAN.crouch.frames[0], MUMMY.windup.frames[0], MUMMY.hit.frames[0], GILL.coil.frames[0], ...GILL.flop.frames];
-}

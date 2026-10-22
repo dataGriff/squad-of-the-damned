@@ -1,20 +1,18 @@
-import { allSprites } from '../src/game/art';
+/**
+ * Palette constraint (#37) over the art registry (#63): every sprite uses at
+ * most 4 indices, and every palette any sprite is drawn in comes from the
+ * NES master palette.
+ */
 import { checkSprites, checkPalette } from '../src/game/paletteCheck';
-import { KIDS } from '../src/game/squad';
-import { BOSS_PALETTES, BAT_PAL, RAT_PAL, HAND_PAL, FROG_PAL } from '../src/game/art/monsters';
-import { THEMES } from '../src/game/art/tiles';
+import { artRegistry, registeredPalettes, registeredSprites } from '../src/game/art/registry';
 
-const sprites = allSprites();
+const sprites = registeredSprites();
+const palettes = registeredPalettes();
 const violations = checkSprites(sprites);
-for (const k of Object.values(KIDS)) violations.push(...checkPalette(k.palette, `kid:${k.id}`));
-for (const [n, p] of Object.entries(BOSS_PALETTES)) violations.push(...checkPalette(p, `boss:${n}`));
-for (const [n, p] of Object.entries({ BAT_PAL, RAT_PAL, HAND_PAL, FROG_PAL })) violations.push(...checkPalette(p, n));
-for (const [n, t] of Object.entries(THEMES)) {
-  violations.push(...checkPalette(t.tiles, `theme:${n}:tiles`), ...checkPalette(t.deco, `theme:${n}:deco`));
-}
+for (const { pal, entries } of palettes) violations.push(...checkPalette(pal, entries[0].id));
 if (violations.length) {
   console.error(`Palette check FAILED (${violations.length} problems):`);
   for (const v of violations) console.error(`  ${v.sprite}: ${v.reason}`);
   process.exit(1);
 }
-console.log(`Palette check OK: ${sprites.length} sprites, all ≤4 colours from the master palette.`);
+console.log(`Palette check OK: ${sprites.length} sprites in ${artRegistry().length} registry entries, ${palettes.length} palettes, all ≤4 colours from the master palette.`);

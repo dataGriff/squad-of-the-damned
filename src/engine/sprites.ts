@@ -92,7 +92,10 @@ export class Animator {
 /** Rasterises sprites with palettes to canvases, cached. Browser-only. */
 export class Atlas {
   private cache = new Map<string, HTMLCanvasElement>();
+  /** Called on every lookup when set: capture mode records which palettes sprites are drawn in (#63). */
+  onGet: ((sprite: Sprite, palette: SpritePalette) => void) | null = null;
   get(sprite: Sprite, palette: SpritePalette, flip = false): HTMLCanvasElement {
+    this.onGet?.(sprite, palette);
     const key = `${sprite.name}|${palette.join(',')}|${flip ? 1 : 0}`;
     let c = this.cache.get(key);
     if (c) return c;

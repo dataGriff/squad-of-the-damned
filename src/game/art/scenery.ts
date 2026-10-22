@@ -1,7 +1,7 @@
 /** Title and treehouse scenery (#30, #44): the big oak, the treehouse and ground strips. */
 import { PixelArt, rng } from '../../engine/pixelart';
 import type { Sprite } from '../../engine/sprites';
-import { pal } from '../palette';
+import { cycleList, pal } from '../palette';
 
 /** The oak: a textured trunk with roots and two big limbs. */
 export const OAK_TRUNK: Sprite = (() => {
@@ -77,6 +77,8 @@ export const TREEHOUSE: Sprite = (() => {
   return p.toSprite('treehouse');
 })();
 export const TREEHOUSE_PAL = pal('darkBrown', 'brown', 'yellow');
+/** The treehouse windows flicker like lamplight (#54). */
+export const TREEHOUSE_FLICKER = cycleList(['yellow', 'yellow', 'sand', 'yellow', 'amber', 'yellow']);
 
 export const ROPE_LADDER: Sprite = (() => {
   const p = new PixelArt(12, 90);
@@ -96,7 +98,3 @@ export const DRIP: Sprite = (() => {
   return p.toSprite('drip');
 })();
 export const DRIP_PAL = pal('crimson', 'red', 'red');
-
-export function allScenerySprites(): Sprite[] {
-  return [OAK_TRUNK, OAK_CANOPY, TREEHOUSE, ROPE_LADDER, DRIP];
-}

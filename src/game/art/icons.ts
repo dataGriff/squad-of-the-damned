@@ -24,7 +24,3 @@ export const PILL_PAL = pal('black', 'grey', 'lightGrey');
 
 export const SKULL = defineSprite('icon_skull', ['.11111.', '1333331', '3113113', '3113113', '1333331', '.13131.', '.11111.']);
 export const SKULL_PAL = pal('black', 'black', 'lightGrey');
-
-export function allIconSprites() {
-  return [HEART_FULL, HEART_EMPTY, LIFE, CLOCK, BUTTON_A, BUTTON_B, BUTTON_PILL, SKULL];
-}

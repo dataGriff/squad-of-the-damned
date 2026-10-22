@@ -6,7 +6,7 @@
 import type { Renderer } from '../engine/render';
 import type { Sprite } from '../engine/sprites';
 import type { SpritePalette } from './palette';
-import { MASTER_PALETTE, rotated } from './palette';
+import { rotated } from './palette';
 import { drawBackdrop } from './backdrop';
 import type { Theme } from './art/tiles';
 import { BAT, BAT_PAL, GIANT, GIANT_PAL, MUMMY, MUMMY_PAL, VAMPIRE, VAMPIRE_PAL, WOLFMAN, WOLF_PAL } from './art/monsters';
@@ -17,9 +17,20 @@ import { BROKEN_RIM, MUSEUM } from './art/landmarks';
 import { BIG_MOON } from './art/backdrops';
 import { OAK_CANOPY, OAK_CANOPY_PAL, TREEHOUSE, TREEHOUSE_PAL } from './art/scenery';
 import { pal } from './palette';
+import { SHADOW_PAL } from './art/common';
 import type { Colour } from './design/tokens';
 
 /** The picture box every panel draws into. */
+/** Palettes only the story panels use, registered with the art (#63). */
+const MUSEUM_LIT = pal('black', 'amber', 'tan');
+const RIM_LIT = pal('black', 'drainBlue', 'teal');
+const MOON_BIG = pal('moon', 'sand', 'yellow');
+export const STORY_ART: { sprite: Sprite; pal: SpritePalette }[] = [
+  { sprite: MUSEUM, pal: MUSEUM_LIT },
+  { sprite: BROKEN_RIM, pal: RIM_LIT },
+  { sprite: BIG_MOON, pal: MOON_BIG },
+];
+
 export const BOX = { x: 16, y: 20, w: 224, h: 112 };
 
 export interface Panel {
@@ -31,7 +42,6 @@ export interface Chapter {
   panels: Panel[];
 }
 
-const SILHOUETTE: SpritePalette = [null, MASTER_PALETTE.black, MASTER_PALETTE.black, MASTER_PALETTE.darkGrey];
 
 /** A theme's backdrop, scrolled vertically by `dy` so the interesting part sits in the box. */
 function scene(theme: Theme, dy: number, camX = 0) {
@@ -106,7 +116,7 @@ export const CHAPTERS: Record<string, Chapter> = {
         text: 'THE OLD GRAVEYARD. SOMETHING VERY BIG HAS BEEN DIGGING.',
         art: (r, t) => {
           scene('graveyard', 60)(r, t);
-          big(r, GIANT.walk.frames[Math.floor(t * 3) % 4], SILHOUETTE, 140, BOX.y + 4, 2);
+          big(r, GIANT.walk.frames[Math.floor(t * 3) % 4], SHADOW_PAL, 140, BOX.y + 4, 2);
         },
       },
     ],
@@ -135,9 +145,9 @@ export const CHAPTERS: Record<string, Chapter> = {
         text: 'FULL MOON OVER MAPLE DRIVE. MR GREY THE POSTMAN NEVER FINISHED HIS ROUND.',
         art: (r, t) => {
           scene('suburb', 80)(r, t);
-          big(r, BIG_MOON, pal('moon', 'sand', 'yellow'), 106, BOX.y + 4, 2);
+          big(r, BIG_MOON, MOON_BIG, 106, BOX.y + 4, 2);
           r.rect(BOX.x, BOX.y + BOX.h - 22, BOX.w, 22, 'black');
-          big(r, WOLFMAN.howl.frames[0], SILHOUETTE, 112, BOX.y + BOX.h - 22 - 62, 2);
+          big(r, WOLFMAN.howl.frames[0], SHADOW_PAL, 112, BOX.y + BOX.h - 22 - 62, 2);
         },
       },
     ],
@@ -161,9 +171,9 @@ export const CHAPTERS: Record<string, Chapter> = {
         text: 'UNDER THE MUSEUM. ONE OF THE EXHIBITS HAS GONE FOR A WALK.',
         art: (r) => {
           r.rect(BOX.x, BOX.y, BOX.w, BOX.h, 'drainBlue');
-          r.sprite(MUSEUM, pal('black', 'amber', 'tan'), 78, BOX.y + 4);
+          r.sprite(MUSEUM, MUSEUM_LIT, 78, BOX.y + 4);
           r.rect(118, BOX.y + 38, 22, 46, 'black'); // the sarcophagus is empty
-          r.sprite(BROKEN_RIM, pal('black', 'drainBlue', 'teal'), 78, BOX.y + 4);
+          r.sprite(BROKEN_RIM, RIM_LIT, 78, BOX.y + 4);
         },
       },
     ],
@@ -175,8 +185,8 @@ export const CHAPTERS: Record<string, Chapter> = {
         text: 'THE MUMMY IS BACK IN ITS CASE. THE GIFT SHOP NOW SELLS A PLUSH ONE.',
         art: (r) => {
           r.rect(BOX.x, BOX.y, BOX.w, BOX.h, 'drainBlue');
-          r.sprite(MUSEUM, pal('black', 'amber', 'tan'), 78, BOX.y + 4);
-          r.sprite(BROKEN_RIM, pal('black', 'drainBlue', 'teal'), 78, BOX.y + 4);
+          r.sprite(MUSEUM, MUSEUM_LIT, 78, BOX.y + 4);
+          r.sprite(BROKEN_RIM, RIM_LIT, 78, BOX.y + 4);
           r.sprite(MUMMY.idle.frames[0], MUMMY_PAL, 170, BOX.y + BOX.h - 34);
         },
       },

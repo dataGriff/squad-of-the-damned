@@ -8,6 +8,7 @@
 import { anim, type AnimDef, type Sprite } from '../../engine/sprites';
 import { PixelArt } from '../../engine/pixelart';
 import type { KidId } from '../squad';
+import { pal } from '../palette';
 
 type Pt = [number, number];
 type HeadKind = 'normal' | 'blink' | 'hurt' | 'effort';
@@ -451,26 +452,14 @@ function portrait(id: KidId): Sprite {
   p.stamp(head, 1, 1).outline(1);
   return p.toSprite(`portrait_${id}`);
 }
+/** Portraits of kids who are not in control: greyed so the active kid stands out. */
+export const PORTRAIT_DIM_PAL = pal('darkGrey', 'grey', 'lightGrey');
+
 export const KID_PORTRAITS: Record<KidId, Sprite> = {
   sling: portrait('sling'),
   garlic: portrait('garlic'),
   big: portrait('big'),
   little: portrait('little'),
 };
-
-/** Every kid sprite, for the palette check. */
-export function allKidSprites(): Sprite[] {
-  const seen = new Set<string>();
-  const out: Sprite[] = [];
-  for (const s of Object.values(KID_SHEETS))
-    for (const a of Object.values(s.anims))
-      for (const f of a.frames)
-        if (!seen.has(f.name)) {
-          seen.add(f.name);
-          out.push(f);
-        }
-  out.push(...Object.values(KID_PORTRAITS));
-  return out;
-}
 
 export { STAND_LEG };

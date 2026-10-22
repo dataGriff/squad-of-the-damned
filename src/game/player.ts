@@ -13,7 +13,7 @@ import { TUNING as T } from './tuning';
 import { KIDS, type Kid, type KidId } from './squad';
 import type { Player as IPlayer, World } from './world';
 import type { Crate } from './objects';
-import { solid } from './design/tokens';
+import { FLASH_PAL } from './art/common';
 
 export class Player implements IPlayer {
   kind = 'player';
@@ -432,4 +432,3 @@ export class Player implements IPlayer {
   worldRef: World | null = null;
 }
 
-const FLASH_PAL = solid('white');

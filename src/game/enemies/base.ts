@@ -7,7 +7,8 @@ import { audio } from '../../engine/audio';
 import type { SpritePalette } from '../palette';
 import type { Damageable, World } from '../world';
 import type { Weakness } from '../manual';
-import { solid, type Colour } from '../design/tokens';
+import type { Colour } from '../design/tokens';
+import { FLASH_PAL } from '../art/common';
 
 export interface EnemyOpts {
   w: number;
@@ -134,10 +135,9 @@ export class Enemy implements Damageable {
     const recoil = this.flashTime > 0 ? -this.dir : 0;
     const x = b.px + (b.x - b.px) * alpha - cx + b.w / 2 - s.w / 2 + recoil;
     const y = b.py + (b.y - b.py) * alpha - cy + b.h - s.h;
-    const pal = this.flashTime > 0 ? WHITE : this.opts.pal;
+    const pal = this.flashTime > 0 ? FLASH_PAL : this.opts.pal;
     r.sprite(s, pal, x, y, this.dir > 0);
     if (this.stunTime > 0) r.marker('*', x + s.w / 2 - 4, y - 8, 'good');
   }
 }
 
-export const WHITE: SpritePalette = solid('white');
