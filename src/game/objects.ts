@@ -59,7 +59,7 @@ export class Lamp extends Static {
     if (!this.lit && this.touching(world)) {
       this.lit = true;
       audio.play('checkpoint');
-      for (let i = 0; i < 6; i++) world.particles.sparkle(this.x + 6, this.y + 4, '#f8f8b8');
+      for (let i = 0; i < 6; i++) world.particles.sparkle(this.x + 6, this.y + 4, 'moon');
       world.events.onCheckpoint(this.index);
     }
   }
@@ -176,7 +176,7 @@ export class Exit extends Static {
   }
   draw(r: Renderer, cx: number, cy: number): void {
     r.sprite(A.EXIT, A.DOOR_PAL, this.x - cx, this.y - cy);
-    if (this.open) r.text('▲', this.x + 4 - cx, this.y - 10 - cy + Math.round(Math.sin(clock.now() * 4) * 2), '#f8d878');
+    if (this.open) r.text('▲', this.x + 4 - cx, this.y - 10 - cy + Math.round(Math.sin(clock.now() * 4) * 2), 'yellow');
   }
 }
 
@@ -210,7 +210,7 @@ export class Valve extends Static {
     this.anim.update(dt);
     if (this.spray > 0) {
       this.spray -= dt;
-      if (rand() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (rand() - 0.5) * 30, vy: 60 + rand() * 40, life: 0.5, colour: '#a4e4fc', size: 1, gravity: 100, kind: 'drop' });
+      if (rand() < 0.5) world.particles.emit({ x: this.x + 4, y: this.valveY + 12, vx: (rand() - 0.5) * 30, vy: 60 + rand() * 40, life: 0.5, colour: 'iceBlue', size: 1, gravity: 100, kind: 'drop' });
     }
   }
   /** Rect of the falling water column below the valve. */
@@ -218,7 +218,7 @@ export class Valve extends Static {
     return this.spray > 0 ? { x: this.x - 4, y: this.valveY + 12, w: 16, h: Math.max(16, this.floorY - this.valveY - 12) } : null;
   }
   draw(r: Renderer, cx: number, cy: number): void {
-    for (let y = this.valveY + 12; y < this.floorY; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, '#3c3c3c');
+    for (let y = this.valveY + 12; y < this.floorY; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, 'darkGrey');
     r.sprite(A.VALVE, A.VALVE_PAL, this.x - 2 - cx, this.valveY - 4 - cy);
     if (this.spray > 0) {
       for (let y = this.valveY + 12; y < this.floorY; y += 8) r.sprite(this.anim.sprite, A.WATER_PAL, this.x - cx, y - cy);
@@ -247,7 +247,7 @@ export class Lantern extends Static {
     if (this.falling || this.burning > 0) return false;
     this.falling = true;
     audio.play('break');
-    world.particles.burst(this.x + 4, this.lanternY + 4, '#f8d878', 4, 40);
+    world.particles.burst(this.x + 4, this.lanternY + 4, 'yellow', 4, 40);
     return true;
   }
   update(world: World, dt: number): void {
@@ -264,7 +264,7 @@ export class Lantern extends Static {
       }
     } else if (this.burning > 0) {
       this.burning -= dt;
-      if (rand() < 0.3) world.particles.emit({ x: this.x + rand() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: '#f8d878', size: 1, gravity: -40, kind: 'spark' });
+      if (rand() < 0.3) world.particles.emit({ x: this.x + rand() * 8, y: this.lanternY, vx: 0, vy: -30, life: 0.4, colour: 'yellow', size: 1, gravity: -40, kind: 'spark' });
       if (this.burning <= 0) {
         this.dead = true;
         world.add(new LanternRespawn(this.x - 4, this.restY - 4, 6));
@@ -277,7 +277,7 @@ export class Lantern extends Static {
   draw(r: Renderer, cx: number, cy: number): void {
     if (this.burning > 0) r.sprite(this.anim.sprite, A.FIRE_PAL, this.x - cx, this.lanternY - cy);
     else {
-      for (let y = 0; y < this.lanternY; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, '#3c3c3c');
+      for (let y = 0; y < this.lanternY; y += 2) r.rect(this.x + 3 - cx, y - cy, 2, 1, 'darkGrey');
       r.sprite(this.anim.sprite, A.LANTERN_PAL, this.x - cx, this.lanternY - cy);
     }
   }
@@ -311,7 +311,7 @@ export class Sluice implements Entity {
     this.hp--;
     audio.play('break');
     world.camera.shake(2, 0.1);
-    world.particles.burst(this.x + 8, this.y + 16, '#bcbcbc', 6, 60);
+    world.particles.burst(this.x + 8, this.y + 16, 'lightGrey', 6, 60);
     if (this.hp <= 0) {
       this.broken = true;
       this.hostile = false;
@@ -362,7 +362,7 @@ export class Seal extends Static {
     this.done = true;
     this.hostile = false;
     audio.play('checkpoint');
-    for (let i = 0; i < 12; i++) world.particles.sparkle(this.x + rand() * 12, this.y + rand() * 12, '#9878f8');
+    for (let i = 0; i < 12; i++) world.particles.sparkle(this.x + rand() * 12, this.y + rand() * 12, 'violet');
     const seals = world.all<Seal>('seal');
     world.events.onSeal(seals.filter((s) => s.done).length, seals.length);
   }
@@ -390,7 +390,7 @@ export class Portal extends Static {
     this.anim.update(dt);
     if (this.closing > 0) {
       this.closing -= dt;
-      if (rand() < 0.6) world.particles.emit({ x: this.x + 16, y: this.y + 24, vx: (rand() - 0.5) * 120, vy: (rand() - 0.5) * 120, life: 0.5, colour: '#9878f8', size: 2, gravity: 0, kind: 'spark' });
+      if (rand() < 0.6) world.particles.emit({ x: this.x + 16, y: this.y + 24, vx: (rand() - 0.5) * 120, vy: (rand() - 0.5) * 120, life: 0.5, colour: 'violet', size: 2, gravity: 0, kind: 'spark' });
       if (this.closing <= 0) this.dead = true;
       return;
     }

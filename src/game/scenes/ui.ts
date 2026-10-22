@@ -20,8 +20,9 @@ import { DRIP, DRIP_PAL, OAK_CANOPY, OAK_CANOPY_PAL, OAK_TRUNK, OAK_TRUNK_PAL, R
 import { NightScene } from './night';
 import { StoryScene } from './story';
 import { CHAPTERS, beforeChapter, storySoFar } from '../story';
+import { solid } from '../design/tokens';
 
-const GREY: readonly [null, string, string, string] = [null, '#3c3c3c', '#3c3c3c', '#3c3c3c'];
+const GREY = solid('darkGrey');
 
 export class TitleScene implements Scene {
   private t = 0;
@@ -86,30 +87,30 @@ export class TitleScene implements Scene {
       r.sprite(s, KIDS[id].palette, 84 + i * 24, 208 - s.h, false);
     });
     // logo: a dithered dark band behind it, then the small line and the big dripping title
-    r.dither(0, 28, SCREEN_W, 68, '#000000');
-    r.dither(0, 36, SCREEN_W, 52, '#000000', 1);
+    r.dither(0, 28, SCREEN_W, 68, 'panel');
+    r.dither(0, 36, SCREEN_W, 52, 'panel', 1);
     const small = 'SQUAD OF';
-    r.bigText(small, (SCREEN_W - r.bigTextWidth(small)) / 2, 34, '#fcfcfc', '#bcbcbc');
+    r.bigText(small, (SCREEN_W - r.bigTextWidth(small)) / 2, 34, 'white', 'lightGrey');
     const big = 'THE DAMNED';
     const bw = r.bigTextWidth(big, 3);
     const bx = Math.round((SCREEN_W - bw) / 2);
-    r.bigText(big, bx, 56, '#e40058', '#a80020', 3);
+    r.bigText(big, bx, 56, 'danger', 'dangerShade', 3);
     for (let i = 0; i < 7; i++) {
       const x = bx + 6 + i * 11 + ((i * 7) % 5);
       const len = ((this.t * 9 + i * 13) % 26) - 4;
       if (len > 0) {
-        r.rect(x, 82, 1, Math.min(len, 14), '#a80020');
+        r.rect(x, 82, 1, Math.min(len, 14), 'dangerShade');
         if (len > 14) r.sprite(DRIP, DRIP_PAL, x - 1, 82 + len - 2);
       }
     }
     if (!this.showMenu) {
-      if (Math.floor(this.t * 2) % 2 === 0) r.headingCentered('PRESS START', 132, '#fcfcfc');
+      if (Math.floor(this.t * 2) % 2 === 0) r.headingCentered('PRESS START', 132, 'text');
     } else {
-      r.box(SCREEN_W / 2 - 60, 118, 120, this.menu.items.length * 12 + 12, '#000000');
+      r.box(SCREEN_W / 2 - 60, 118, 120, this.menu.items.length * 12 + 12, 'panel');
       this.menu.draw(r, 124);
     }
-    r.rect(0, 228, SCREEN_W, 12, '#000000');
-    r.textCentered('HUNGOVERCODERS 2026', 230, '#bcbcbc');
+    r.rect(0, 228, SCREEN_W, 12, 'panel');
+    r.textCentered('HUNGOVERCODERS 2026', 230, 'textSoft');
   }
 }
 
@@ -126,8 +127,8 @@ export class ConfirmScene implements Scene {
     this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.box(16, 90, SCREEN_W - 32, 60, '#0000a8');
-    r.textCentered(this.text, 100, '#fcfcfc');
+    r.box(16, 90, SCREEN_W - 32, 60, 'dialog');
+    r.textCentered(this.text, 100, 'text');
     this.menu.draw(r, 118);
   }
 }
@@ -211,35 +212,35 @@ export class HubScene implements Scene {
     for (let i = 0; i < 9; i++) {
       const fx = (i * 53 + Math.sin(this.t * 0.7 + i) * 20 + 256) % 256;
       const fy = 120 + ((i * 31) % 80) + Math.cos(this.t * 0.9 + i * 2) * 8;
-      if (Math.sin(this.t * 3 + i * 1.7) > -0.2) r.rect(fx, fy, 1, 1, '#f8d878');
+      if (Math.sin(this.t * 3 + i * 1.7) > -0.2) r.rect(fx, fy, 1, 1, 'accent');
     }
-    r.box(0, 0, SCREEN_W, 18, '#000000');
-    r.headingCentered('THE TREEHOUSE', 5, '#f8d878');
+    r.box(0, 0, SCREEN_W, 18, 'panel');
+    r.headingCentered('THE TREEHOUSE', 5, 'accent');
     const { found, total } = pagesFound(this.game.save.data.pages);
-    r.textShadow(`PAGES ${found}/${total}`, 8, 228, '#fcfcfc');
-    r.textShadow(`SILVER ${this.game.save.data.silver}`, 160, 228, '#fcfcfc');
+    r.textShadow(`PAGES ${found}/${total}`, 8, 228, 'text');
+    r.textShadow(`SILVER ${this.game.save.data.silver}`, 160, 228, 'text');
     if (this.mode === 'main') {
       KID_ORDER.forEach((id, i) => {
         const s = kidFrame(id, 'idle', this.t, i);
         r.sprite(s, KIDS[id].palette, 76 + i * 28, 92 - s.h, i > 1);
       });
-      r.box(SCREEN_W / 2 - 76, 128, 152, 84, '#000000');
+      r.box(SCREEN_W / 2 - 76, 128, 152, 84, 'panel');
       this.menu.draw(r, 136);
     } else if (this.mode === 'nights') {
-      r.box(4, 100, SCREEN_W - 8, 120, '#000000');
-      this.nightMenu.draw(r, 108, '#fcfcfc', '#7c7c7c', false, 12);
-      r.text('* = CLEARED', 12, 204, '#bcbcbc');
+      r.box(4, 100, SCREEN_W - 8, 120, 'panel');
+      this.nightMenu.draw(r, 108, 'text', 'textDim', false, 12);
+      r.text('* = CLEARED', 12, 204, 'textSoft');
     } else {
-      r.box(4, 96, SCREEN_W - 8, 128, '#000000');
+      r.box(4, 96, SCREEN_W - 8, 128, 'panel');
       KID_ORDER.forEach((id, i) => {
         const k = KIDS[id];
         const s = KID_SHEETS[id].anims.idle.frames[0];
         const y = 104 + i * 28;
         r.sprite(s, k.palette, 16 + 8 - s.w / 2, y + 24 - s.h);
-        r.heading(k.name, 40, y + 1, '#f8d878');
-        r.text(k.blurb.slice(0, 26), 40, y + 12, '#bcbcbc');
+        r.heading(k.name, 40, y + 1, 'accent');
+        r.text(k.blurb.slice(0, 26), 40, y + 12, 'textSoft');
       });
-      r.text('START TO GO BACK', 12, 212, '#7c7c7c');
+      r.text('START TO GO BACK', 12, 212, 'textDim');
     }
   }
 }
@@ -311,8 +312,8 @@ export class OptionsScene implements Scene {
   }
   draw(r: Renderer): void {
     const o = this.game.save.data.options;
-    r.box(8, 24, SCREEN_W - 16, 192, '#0000a8');
-    r.headingCentered('OPTIONS', 32, '#f8d878');
+    r.box(8, 24, SCREEN_W - 16, 192, 'dialog');
+    r.headingCentered('OPTIONS', 32, 'accent');
     const vals: Record<string, string> = {
       MUSIC: bar(o.musicVolume),
       SOUND: bar(o.sfxVolume),
@@ -326,10 +327,10 @@ export class OptionsScene implements Scene {
     };
     this.items.forEach((it, i) => {
       const sel = i === this.index;
-      r.text((sel ? '►' : ' ') + it, 20, 52 + i * 14, sel ? '#fcfcfc' : '#bcbcbc');
-      r.text(vals[it], 150, 52 + i * 14, sel ? '#f8d878' : '#bcbcbc');
+      r.text((sel ? '►' : ' ') + it, 20, 52 + i * 14, sel ? 'text' : 'textSoft');
+      r.text(vals[it], 150, 52 + i * 14, sel ? 'accent' : 'textSoft');
     });
-    r.text('LEFT/RIGHT TO CHANGE', 20, 190, '#7c7c7c');
+    r.text('LEFT/RIGHT TO CHANGE', 20, 190, 'textDim');
   }
 }
 function bar(v: number): string {
@@ -371,16 +372,16 @@ export class RemapScene implements Scene {
     if (input.pressed('pause')) this.game.pop();
   }
   draw(r: Renderer): void {
-    r.box(8, 24, SCREEN_W - 16, 192, '#0000a8');
-    r.headingCentered('REMAP KEYS', 32, '#f8d878');
+    r.box(8, 24, SCREEN_W - 16, 192, 'dialog');
+    r.headingCentered('REMAP KEYS', 32, 'accent');
     this.actions.forEach((a, i) => {
       const sel = i === this.index;
-      r.text((sel ? '►' : ' ') + a.toUpperCase(), 20, 52 + i * 14, sel ? '#fcfcfc' : '#bcbcbc');
+      r.text((sel ? '►' : ' ') + a.toUpperCase(), 20, 52 + i * 14, sel ? 'text' : 'textSoft');
       const keys = this.game.bindings.keys[a].map(pretty).join(' ');
-      r.text(sel && this.waiting ? 'PRESS A KEY...' : keys, 110, 52 + i * 14, sel ? '#f8d878' : '#bcbcbc');
+      r.text(sel && this.waiting ? 'PRESS A KEY...' : keys, 110, 52 + i * 14, sel ? 'accent' : 'textSoft');
     });
     const backSel = this.index === this.actions.length;
-    r.text((backSel ? '►' : ' ') + 'BACK', 20, 52 + this.actions.length * 14, backSel ? '#fcfcfc' : '#bcbcbc');
+    r.text((backSel ? '►' : ' ') + 'BACK', 20, 52 + this.actions.length * 14, backSel ? 'text' : 'textSoft');
   }
 }
 function pretty(code: string): string {
@@ -409,41 +410,41 @@ export class ManualScene implements Scene {
     const page = MANUAL_PAGES[this.index];
     const found = this.game.save.hasPage(page.id);
     // open book: leather cover, two parchment pages, a gutter shadow
-    r.rect(6, 18, SCREEN_W - 12, 204, '#2c1600');
-    r.rect(8, 20, SCREEN_W - 16, 200, '#503000');
-    r.rect(12, 24, SCREEN_W - 24, 192, '#f8d8c8');
-    r.dither(SCREEN_W / 2 - 6, 24, 6, 192, '#f0d0b0');
-    r.dither(SCREEN_W / 2 + 1, 24, 6, 192, '#f0d0b0', 1);
-    r.rect(SCREEN_W / 2, 24, 1, 192, '#503000');
+    r.rect(6, 18, SCREEN_W - 12, 204, 'ink');
+    r.rect(8, 20, SCREEN_W - 16, 200, 'inkSoft');
+    r.rect(12, 24, SCREEN_W - 24, 192, 'paper');
+    r.dither(SCREEN_W / 2 - 6, 24, 6, 192, 'paperShade');
+    r.dither(SCREEN_W / 2 + 1, 24, 6, 192, 'paperShade', 1);
+    r.rect(SCREEN_W / 2, 24, 1, 192, 'inkSoft');
     // framed hint art, pixel-doubled when it fits
     const art = CREATURE_ART[page.art];
     const scale = Math.max(1, Math.min(3, Math.floor(Math.min(84 / art.sprite.w, 80 / art.sprite.h))));
-    r.rect(18, 30, 98, 88, '#503000');
-    r.rect(20, 32, 94, 84, found ? '#000000' : '#3c3c3c');
+    r.rect(18, 30, 98, 88, 'inkSoft');
+    r.rect(20, 32, 94, 84, found ? 'panel' : 'edge');
     r.spriteScaled(art.sprite, found ? art.pal : GREY, 67 - (art.sprite.w * scale) / 2, 112 - art.sprite.h * scale, scale);
-    wrap(found ? page.creature : '???', 12).forEach((l, i) => r.heading(l, 18, 123 + i * 11, '#2c1600', '#f0d0b0'));
-    r.text(page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148, '#a80020');
+    wrap(found ? page.creature : '???', 12).forEach((l, i) => r.heading(l, 18, 123 + i * 11, 'ink', 'paperShade'));
+    r.text(page.night ? `NIGHT ${page.night}` : 'FIELD NOTES', 18, 148, 'inkAccent');
     const lx = SCREEN_W / 2 + 8;
     const col = 13;
     if (found) {
       let y = 32;
       for (const l of wrap(page.lore.join(' '), col)) {
-        r.text(l, lx, y, '#2c1600');
+        r.text(l, lx, y, 'ink');
         y += 10;
       }
       y += 6;
-      r.heading('WEAKNESS:', lx, y, '#a80020', '#f0d0b0');
+      r.heading('WEAKNESS:', lx, y, 'inkAccent', 'paperShade');
       y += 12;
       for (const l of wrap(`${page.weaknessText} ${page.hint}`, col)) {
-        r.text(l, lx, y, '#2c1600');
+        r.text(l, lx, y, 'ink');
         y += 10;
       }
     } else {
-      wrap('PAGE NOT FOUND YET. LOOK BEHIND VENTS AND CRACKED WALLS.', col).forEach((l, i) => r.text(l, lx, 32 + i * 10, '#7c7c7c'));
+      wrap('PAGE NOT FOUND YET. LOOK BEHIND VENTS AND CRACKED WALLS.', col).forEach((l, i) => r.text(l, lx, 32 + i * 10, 'textDim'));
     }
     const { found: f, total } = pagesFound(this.game.save.data.pages);
-    r.text(`◄ ${this.index + 1}/${MANUAL_PAGES.length} ►`, 20, 200, '#503000');
-    r.text(`FOUND ${f}/${total}`, 150, 200, '#503000');
+    r.text(`◄ ${this.index + 1}/${MANUAL_PAGES.length} ►`, 20, 200, 'inkSoft');
+    r.text(`FOUND ${f}/${total}`, 150, 200, 'inkSoft');
   }
 }
 
@@ -487,8 +488,8 @@ export class PauseScene implements Scene {
     this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.box(44, 78, SCREEN_W - 88, 84, '#0000a8');
-    r.headingCentered('PAUSED', 87, '#f8d878');
+    r.box(44, 78, SCREEN_W - 88, 84, 'dialog');
+    r.headingCentered('PAUSED', 87, 'accent');
     this.menu.draw(r, 106);
   }
 }
@@ -510,9 +511,9 @@ export class GameOverScene implements Scene {
     if (this.t > 0.8) this.menu.update(this.game.input);
   }
   draw(r: Renderer): void {
-    r.clear('#000000');
-    r.headingCentered('THE SQUAD IS DOWN', 80, '#e40058');
-    r.textCentered('...BUT THE NIGHT IS NOT OVER', 96, '#bcbcbc');
+    r.clear('screen');
+    r.headingCentered('THE SQUAD IS DOWN', 80, 'danger');
+    r.textCentered('...BUT THE NIGHT IS NOT OVER', 96, 'textSoft');
     if (this.t > 0.8) this.menu.draw(r, 130);
   }
 }
@@ -546,11 +547,11 @@ export class WinScene implements Scene {
     if (this.t > 3 && (this.game.input.pressed('menu') || this.game.input.pressed('pause'))) this.game.replace(new HubScene(this.game));
   }
   draw(r: Renderer): void {
-    r.clear('#000000');
+    r.clear('screen');
     const scroll = Math.max(0, Math.min(this.lines.length * 12 - 100, (this.t - 1) * 12));
     this.lines.forEach((l, i) => {
       const y = 120 + i * 12 - scroll;
-      if (y > 20 && y < SCREEN_H - 30) r.textCentered(l, y, i === 9 ? '#e40058' : '#fcfcfc');
+      if (y > 20 && y < SCREEN_H - 30) r.textCentered(l, y, i === 9 ? 'danger' : 'text');
     });
     KID_ORDER.forEach((id, i) => {
       const s = kidFrame(id, 'run', this.t, i);

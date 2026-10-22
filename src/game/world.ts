@@ -11,6 +11,7 @@ import type { TileMap } from '../engine/tilemap';
 import type { SaveStore } from '../engine/save';
 import type { Squad } from './squad';
 import type { Weakness } from './manual';
+import type { Colour } from './design/tokens';
 
 export interface Entity {
   kind: string;
@@ -65,7 +66,7 @@ export class World {
   /** Set during the freeze-frame on swap/hit: entities skip updates. */
   freeze = 0;
   flash = 0;
-  flashColour = '#fcfcfc';
+  flashColour: Colour = 'white';
   waterLevel: number | null = null;
   nightId: string;
   player!: Player;
@@ -102,7 +103,7 @@ export class World {
     return this.entities.filter((e) => e.kind === kind && !e.dead) as T[];
   }
 
-  freezeFrame(ticks: number, flash?: string): void {
+  freezeFrame(ticks: number, flash?: Colour): void {
     this.freeze = Math.max(this.freeze, ticks);
     if (flash) {
       this.flash = 3;

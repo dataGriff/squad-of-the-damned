@@ -6,7 +6,7 @@
  */
 import { PixelArt, rng } from '../../engine/pixelart';
 import type { Sprite } from '../../engine/sprites';
-import { cycleList, pal, type SpritePalette } from '../palette';
+import { cycleList, pal, type PaletteName, type SpritePalette } from '../palette';
 import * as LM from './landmarks';
 import type { Theme } from './tiles';
 
@@ -27,7 +27,7 @@ export interface BackLayer {
   /** Offset of the first repeat. */
   offset?: number;
   /** Palette cycling: one entry steps through these colours. */
-  cycle?: { index: 1 | 2 | 3; colours: string[]; fps: number };
+  cycle?: { index: 1 | 2 | 3; colours: PaletteName[]; fps: number };
   /** Sky layers turn white under lightning; silhouettes turn black. */
   sky?: boolean;
   /** Underground themes have no sky: lightning lights these layers with this palette instead. */
@@ -41,7 +41,7 @@ const W = 256;
 /* ------------------------------------------------------------------ */
 
 /** A dithered vertical gradient between two colours, 32px wide, tiled across the screen. */
-function skyBand(name: string, top: string, bottom: string, y0: number, y1: number): BackLayer {
+function skyBand(name: string, top: PaletteName, bottom: PaletteName, y0: number, y1: number): BackLayer {
   const p = new PixelArt(32, y1 - y0).gradientV(0, 0, 32, y1 - y0, 1, 2);
   return { frames: [p.toSprite(name)], pal: pal(top, bottom, bottom), y: y0, factor: 0, sky: true };
 }

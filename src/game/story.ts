@@ -17,6 +17,7 @@ import { BROKEN_RIM, MUSEUM } from './art/landmarks';
 import { BIG_MOON } from './art/backdrops';
 import { OAK_CANOPY, OAK_CANOPY_PAL, TREEHOUSE, TREEHOUSE_PAL } from './art/scenery';
 import { pal } from './palette';
+import type { Colour } from './design/tokens';
 
 /** The picture box every panel draws into. */
 export const BOX = { x: 16, y: 20, w: 224, h: 112 };
@@ -42,7 +43,7 @@ function scene(theme: Theme, dy: number, camX = 0) {
   };
 }
 const big = (r: Renderer, s: Sprite, p: SpritePalette, x: number, y: number, k: number, flip = false) => r.spriteScaled(s, p, x, y, k, flip);
-const ground = (r: Renderer, colour = '#000000') => r.rect(BOX.x, BOX.y + BOX.h - 10, BOX.w, 10, colour);
+const ground = (r: Renderer, colour: Colour = 'black') => r.rect(BOX.x, BOX.y + BOX.h - 10, BOX.w, 10, colour);
 
 function bats(r: Renderer, t: number, n: number, spread = 1) {
   for (let i = 0; i < n; i++) {
@@ -66,8 +67,8 @@ export const CHAPTERS: Record<string, Chapter> = {
       {
         text: 'THEY NEVER COME OUT BY DAY.',
         art: (r, t) => {
-          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, '#000000');
-          r.dither(BOX.x + 60, BOX.y, 104, BOX.h, '#2c1600');
+          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, 'black');
+          r.dither(BOX.x + 60, BOX.y, 104, BOX.h, 'darkBrown');
           big(r, VAMPIRE.idle.frames[Math.floor(t * 2) % 2], VAMPIRE_PAL, 80, BOX.y + 8, 4);
         },
       },
@@ -82,13 +83,13 @@ export const CHAPTERS: Record<string, Chapter> = {
       {
         text: 'CASEY. MO. BRUNO. PIP. THE SQUAD. TONIGHT THEY GO IN.',
         art: (r) => {
-          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, '#000000');
+          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, 'black');
           KID_ORDER.forEach((id, i) => {
             const x = BOX.x + 12 + i * 54;
-            r.dither(x - 4, BOX.y + 8, 56, 72, '#3c3c3c', i % 2);
+            r.dither(x - 4, BOX.y + 8, 56, 72, 'darkGrey', i % 2);
             const pt = KID_PORTRAITS[id];
             big(r, pt, KIDS[id].palette, x + 24 - pt.w * 2, BOX.y + 14, 4);
-            r.text(KIDS[id].name, x + 24 - KIDS[id].name.length * 4, BOX.y + 90, '#f8d878');
+            r.text(KIDS[id].name, x + 24 - KIDS[id].name.length * 4, BOX.y + 90, 'yellow');
           });
         },
       },
@@ -135,7 +136,7 @@ export const CHAPTERS: Record<string, Chapter> = {
         art: (r, t) => {
           scene('suburb', 80)(r, t);
           big(r, BIG_MOON, pal('moon', 'sand', 'yellow'), 106, BOX.y + 4, 2);
-          r.rect(BOX.x, BOX.y + BOX.h - 22, BOX.w, 22, '#000000');
+          r.rect(BOX.x, BOX.y + BOX.h - 22, BOX.w, 22, 'black');
           big(r, WOLFMAN.howl.frames[0], SILHOUETTE, 112, BOX.y + BOX.h - 22 - 62, 2);
         },
       },
@@ -159,9 +160,9 @@ export const CHAPTERS: Record<string, Chapter> = {
       {
         text: 'UNDER THE MUSEUM. ONE OF THE EXHIBITS HAS GONE FOR A WALK.',
         art: (r) => {
-          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, '#004058');
+          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, 'drainBlue');
           r.sprite(MUSEUM, pal('black', 'amber', 'tan'), 78, BOX.y + 4);
-          r.rect(118, BOX.y + 38, 22, 46, '#000000'); // the sarcophagus is empty
+          r.rect(118, BOX.y + 38, 22, 46, 'black'); // the sarcophagus is empty
           r.sprite(BROKEN_RIM, pal('black', 'drainBlue', 'teal'), 78, BOX.y + 4);
         },
       },
@@ -173,7 +174,7 @@ export const CHAPTERS: Record<string, Chapter> = {
       {
         text: 'THE MUMMY IS BACK IN ITS CASE. THE GIFT SHOP NOW SELLS A PLUSH ONE.',
         art: (r) => {
-          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, '#004058');
+          r.rect(BOX.x, BOX.y, BOX.w, BOX.h, 'drainBlue');
           r.sprite(MUSEUM, pal('black', 'amber', 'tan'), 78, BOX.y + 4);
           r.sprite(BROKEN_RIM, pal('black', 'drainBlue', 'teal'), 78, BOX.y + 4);
           r.sprite(MUMMY.idle.frames[0], MUMMY_PAL, 170, BOX.y + BOX.h - 34);
@@ -189,7 +190,7 @@ export const CHAPTERS: Record<string, Chapter> = {
         art: (r, t) => {
           scene('drain', 40)(r, t);
           const blink = Math.floor(t * 2) % 5 === 0;
-          if (!blink) for (const ex of [118, 132]) r.rect(ex, BOX.y + 58, 3, 2, '#00e8d8');
+          if (!blink) for (const ex of [118, 132]) r.rect(ex, BOX.y + 58, 3, 2, 'cyan');
         },
       },
     ],
@@ -240,7 +241,7 @@ export const CHAPTERS: Record<string, Chapter> = {
           r.ctx.scale(k, 1);
           r.ctx.drawImage(r.atlas.get(PORTAL.frames[0], rotated(PORTAL_PAL, Math.floor(t * 12))), -16, -24);
           r.ctx.restore();
-          if (t % 3 > 2 && t % 3 < 2.2) r.dither(BOX.x, BOX.y, BOX.w, BOX.h, '#fcfcfc');
+          if (t % 3 > 2 && t % 3 < 2.2) r.dither(BOX.x, BOX.y, BOX.w, BOX.h, 'white');
         },
       },
       {

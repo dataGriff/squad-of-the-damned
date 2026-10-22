@@ -13,7 +13,7 @@ export class Bat extends Enemy {
   private t = rand() * 6;
   private swoop = 0;
   constructor(x: number, y: number) {
-    super(x, y, { w: 10, h: 6, hp: 1, speed: 50, aggroRange: 90, flying: true, colour: '#6844fc', anims: { fly: BAT }, pal: BAT_PAL });
+    super(x, y, { w: 10, h: 6, hp: 1, speed: 50, aggroRange: 90, flying: true, colour: 'purple', anims: { fly: BAT }, pal: BAT_PAL });
     this.body.y = y + 4;
     this.spawnY = this.body.y;
   }
@@ -49,7 +49,7 @@ export class Rat extends Enemy {
     return { sprite: RAT_DEAD, vx: 30, vy: -110, gravity: 600, life: 0.8 };
   }
   constructor(x: number, y: number) {
-    super(x, y, { w: 14, h: 6, hp: 1, speed: 70, aggroRange: 70, colour: '#7c7c7c', anims: { run: RAT }, pal: RAT_PAL });
+    super(x, y, { w: 14, h: 6, hp: 1, speed: 70, aggroRange: 70, colour: 'grey', anims: { run: RAT }, pal: RAT_PAL });
   }
   think(world: World, dt: number): void {
     const { dx } = this.senses(world);
@@ -66,7 +66,7 @@ export class ZombieHand extends Enemy {
   private state: 'hidden' | 'rising' | 'up' | 'sinking' = 'hidden';
   private timer = 0;
   constructor(x: number, y: number) {
-    super(x, y, { w: 8, h: 12, hp: 2, speed: 0, aggroRange: 40, colour: '#007800', anims: { up: HAND }, pal: HAND_PAL });
+    super(x, y, { w: 8, h: 12, hp: 2, speed: 0, aggroRange: 40, colour: 'olive', anims: { up: HAND }, pal: HAND_PAL });
     this.hostile = false;
   }
   think(world: World, dt: number): void {
@@ -117,7 +117,7 @@ export class BogFrog extends Enemy {
   }
   private wait = 0.8;
   constructor(x: number, y: number) {
-    super(x, y, { w: 14, h: 8, hp: 2, speed: 60, aggroRange: 100, colour: '#b8f818', anims: { hop: FROG }, pal: FROG_PAL });
+    super(x, y, { w: 14, h: 8, hp: 2, speed: 60, aggroRange: 100, colour: 'lime', anims: { hop: FROG }, pal: FROG_PAL });
   }
   think(world: World, dt: number): void {
     const b = this.body;

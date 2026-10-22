@@ -23,7 +23,7 @@ describe('Palette cycling (#54)', () => {
   it('every colour used in a cycle is a master palette colour', () => {
     const lists = [...CYCLE_COLOURS, ...Object.values(BACKDROPS).flatMap((ls) => ls.flatMap((l) => (l.cycle ? [l.cycle.colours] : [])))];
     expect(lists.length).toBeGreaterThan(5);
-    for (const list of lists) for (const name of list) expect(MASTER_PALETTE[name], name).toBeTruthy();
+    for (const list of lists) for (const name of list) expect(MASTER_PALETTE[name as keyof typeof MASTER_PALETTE], name).toBeTruthy();
   });
 });
 

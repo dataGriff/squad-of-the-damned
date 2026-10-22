@@ -13,6 +13,7 @@ import { TUNING as T } from './tuning';
 import { KIDS, type Kid, type KidId } from './squad';
 import type { Player as IPlayer, World } from './world';
 import type { Crate } from './objects';
+import { solid } from './design/tokens';
 
 export class Player implements IPlayer {
   kind = 'player';
@@ -111,12 +112,12 @@ export class Player implements IPlayer {
     this.anim.play('hurt', true);
     audio.play('hurt');
     world.camera.shake(3, 0.2);
-    world.freezeFrame(3, this.reducedFlash ? undefined : '#e40058');
+    world.freezeFrame(3, this.reducedFlash ? undefined : 'red');
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(60);
     if (died) {
       this.dead = true;
       audio.play('die');
-      world.particles.burst(this.centerX, this.centerY, '#fcfcfc', 14, 110);
+      world.particles.burst(this.centerX, this.centerY, 'white', 14, 110);
       world.save.recordDeath(world.nightId, this.centerX, this.centerY);
       world.events.onPlayerDeath();
     }
@@ -144,8 +145,8 @@ export class Player implements IPlayer {
         if (this.wear(world, KIDS[next])) {
           squad.swapTo(next);
           audio.play('swap');
-          world.freezeFrame(T.swapFreezeTicks, this.reducedFlash ? undefined : '#fcfcfc');
-          world.particles.burst(this.centerX, this.centerY, '#fcfcfc', 6, 50);
+          world.freezeFrame(T.swapFreezeTicks, this.reducedFlash ? undefined : 'white');
+          world.particles.burst(this.centerX, this.centerY, 'white', 6, 50);
           return;
         }
       }
@@ -245,7 +246,7 @@ export class Player implements IPlayer {
         this.jumpsLeft--;
         this.doJump(world, kid.jump * 0.9);
         this.flipTime = 0.28;
-        world.particles.dust(this.centerX, b.y + b.h, 0, '#f8d878');
+        world.particles.dust(this.centerX, b.y + b.h, 0, 'yellow');
       }
     }
     if (input.isDown('jump')) this.jumpHeld = true;
@@ -375,7 +376,7 @@ export class Player implements IPlayer {
             const tx = Math.floor((px + 6) / TILE);
             if (world.map.kindAt(tx, ty) === 'cracked') {
               world.map.setTile(tx, ty, 0);
-              world.particles.burst(tx * TILE + 8, ty * TILE + 8, '#bcbcbc', 10, 90);
+              world.particles.burst(tx * TILE + 8, ty * TILE + 8, 'lightGrey', 10, 90);
               broke = true;
             }
           }
@@ -431,4 +432,4 @@ export class Player implements IPlayer {
   worldRef: World | null = null;
 }
 
-const FLASH_PAL: readonly [null, string, string, string] = [null, '#fcfcfc', '#fcfcfc', '#fcfcfc'];
+const FLASH_PAL = solid('white');

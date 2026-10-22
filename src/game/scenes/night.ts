@@ -207,7 +207,7 @@ export class NightScene implements Scene {
       for (const tx of [tx0, tx1]) {
         if (this.map.kindAt(tx, ty) === 'solid' && !closed) this.map.setTile(tx, ty, 0);
         else if (closed) this.map.setTile(tx, ty, 14);
-        this.particles.burst(tx * TILE + 8, ty * TILE + 8, '#bcbcbc', 4, 50);
+        this.particles.burst(tx * TILE + 8, ty * TILE + 8, 'lightGrey', 4, 50);
       }
     }
   }
@@ -404,28 +404,28 @@ export class NightScene implements Scene {
     if (this.world.flash > 0) r.dither(0, 0, SCREEN_W, SCREEN_H, this.world.flashColour, this.world.flash & 1);
     drawHud(r, this.squad, this.timer, this.pagePopup, this.popupT);
     if (this.boss) this.boss.drawHud(r);
-    r.textShadow(`LIVES ${this.lives}`, 180, 228, '#fcfcfc');
-    if (this.opts.demo) r.textCentered('DEMO - PRESS ANY KEY', 228, Math.floor(this.world.time * 2) % 2 ? '#fcfcfc' : '#7c7c7c');
+    r.textShadow(`LIVES ${this.lives}`, 180, 228, 'text');
+    if (this.opts.demo) r.textCentered('DEMO - PRESS ANY KEY', 228, Math.floor(this.world.time * 2) % 2 ? 'text' : 'textDim');
     switch (this.state) {
       case 'intro': {
-        r.box(8, 92, SCREEN_W - 16, 50, '#000000');
+        r.box(8, 92, SCREEN_W - 16, 50, 'panel');
         const [head, place] = this.night ? this.night.title.split(': ') : ['MIDNIGHT', 'CLOSE THE PORTAL'];
-        r.headingCentered(head, 99, '#f8d878');
-        r.textCentered(place, 112, '#fcfcfc');
-        r.textCentered(this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', 126, '#bcbcbc');
+        r.headingCentered(head, 99, 'accent');
+        r.textCentered(place, 112, 'text');
+        r.textCentered(this.night ? `KIDS NEEDED: ${this.night.requiredKids.length}+` : 'EVERY KID. EVERY SEAL. 90 SECONDS.', 126, 'textSoft');
         break;
       }
       case 'cleared':
-        r.box(24, 96, SCREEN_W - 48, 32, '#000000');
-        r.headingCentered(this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', 108, '#f8d878');
+        r.box(24, 96, SCREEN_W - 48, 32, 'panel');
+        r.headingCentered(this.night ? 'NIGHT CLEARED!' : 'THE PORTAL IS CLOSED!', 108, 'accent');
         break;
       case 'midnight':
-        r.box(24, 96, SCREEN_W - 48, 32, '#000000');
-        r.headingCentered('MIDNIGHT!', 104, '#e40058');
-        r.textCentered('THE PORTAL OPENS.', 116, '#fcfcfc');
+        r.box(24, 96, SCREEN_W - 48, 32, 'panel');
+        r.headingCentered('MIDNIGHT!', 104, 'danger');
+        r.textCentered('THE PORTAL OPENS.', 116, 'text');
         break;
       case 'dying':
-        if (this.stateT > 0.8) r.headingCentered(this.lives > 0 ? 'OUCH!' : 'THE SQUAD IS DOWN', 108, '#e40058');
+        if (this.stateT > 0.8) r.headingCentered(this.lives > 0 ? 'OUCH!' : 'THE SQUAD IS DOWN', 108, 'danger');
         break;
     }
   }
@@ -442,10 +442,10 @@ export class NightScene implements Scene {
     for (const [k, n] of cells) {
       const [tx, ty] = k.split(',').map(Number);
       r.ctx.globalAlpha = 0.3 + 0.6 * (n / max);
-      r.rect(tx * TILE - cx, ty * TILE - cy, TILE, TILE, n / max > 0.6 ? '#e40058' : '#f8b800');
+      r.rect(tx * TILE - cx, ty * TILE - cy, TILE, TILE, n / max > 0.6 ? 'danger' : 'tan');
     }
     r.ctx.globalAlpha = 1;
-    r.text(`DEATHS: ${deaths.length}`, 4, 20, '#e40058');
+    r.text(`DEATHS: ${deaths.length}`, 4, 20, 'danger');
   }
 
   /** Exposed for the smoke test. */

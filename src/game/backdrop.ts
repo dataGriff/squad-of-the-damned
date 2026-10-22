@@ -22,7 +22,7 @@ const PULSE_SKY = pal('indigo', 'violet', 'violet');
 export function drawBackdrop(r: Renderer, theme: Theme, camX: number, t: number, lightning: Lightning = 'none'): void {
   const layers = BACKDROPS[theme];
   const outdoors = layers.some((l) => l.sky);
-  r.clear(lightning === 'strike' && outdoors ? '#fcfcfc' : THEMES[theme].sky);
+  r.clear(lightning === 'strike' && outdoors ? 'white' : THEMES[theme].sky);
   for (const l of layers) {
     const f = l.frames.length > 1 ? l.frames[Math.floor(t * (l.fps ?? 4)) % l.frames.length] : l.frames[0];
     let p = l.cycle ? cycled(l.pal, l.cycle.index, l.cycle.colours, t, l.cycle.fps) : l.pal;

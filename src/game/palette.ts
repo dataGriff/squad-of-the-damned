@@ -3,7 +3,7 @@
  * Every sprite palette is at most 4 entries: index 0 is transparent, 1–3 are colours
  * chosen from this master list. `paletteCheck` (scripts/palette-check.ts) enforces it.
  */
-export const MASTER_PALETTE: Record<string, string> = {
+export const MASTER_PALETTE = {
   black: '#000000',
   white: '#fcfcfc',
   grey: '#7c7c7c',
@@ -48,14 +48,14 @@ export const MASTER_PALETTE: Record<string, string> = {
   mist: '#b8b8f8',
   amber: '#fca044',
   crimson: '#a80020',
-};
+} as const satisfies Record<string, string>;
 
 export type PaletteName = keyof typeof MASTER_PALETTE;
 
 /** A 4-colour sprite palette: index 0 is always transparent. */
 export type SpritePalette = readonly [null, string, string, string];
 
-export function pal(a: string, b: string, c: string): SpritePalette {
+export function pal(a: PaletteName, b: PaletteName, c: PaletteName): SpritePalette {
   for (const k of [a, b, c]) {
     if (!(k in MASTER_PALETTE)) throw new Error(`Unknown master palette colour: ${k}`);
   }
@@ -81,7 +81,7 @@ export function luminance(hex: string): number {
  * entry rather than the pixels. Returns `base` with index `i` replaced by the
  * colour from `names` for time t.
  */
-export function cycled(base: SpritePalette, i: 1 | 2 | 3, names: string[], t: number, fps: number): SpritePalette {
+export function cycled(base: SpritePalette, i: 1 | 2 | 3, names: readonly PaletteName[], t: number, fps: number): SpritePalette {
   const name = names[Math.floor(t * fps) % names.length];
   const out = [...base] as [null, string, string, string];
   out[i] = MASTER_PALETTE[name];
@@ -96,8 +96,8 @@ export function rotated(base: SpritePalette, steps: number): SpritePalette {
 }
 
 /** Every colour named in a cycle must be a master colour (checked by the palette test). */
-export const CYCLE_COLOURS: string[][] = [];
-export function cycleList(names: string[]): string[] {
+export const CYCLE_COLOURS: PaletteName[][] = [];
+export function cycleList(names: PaletteName[]): PaletteName[] {
   CYCLE_COLOURS.push(names);
   return names;
 }

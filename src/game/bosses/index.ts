@@ -304,7 +304,7 @@ export class StitchedGiant extends Boss {
   }
   draw(r: Renderer, cx: number, cy: number, alpha: number): void {
     super.draw(r, cx, cy, alpha);
-    if (this.redeemed && this.defeatTime > 0.8) r.textShadow('...HE JUST WANTED A FRIEND.', 20, 60, '#fcfcfc');
+    if (this.redeemed && this.defeatTime > 0.8) r.textShadow('...HE JUST WANTED A FRIEND.', 20, 60, 'white');
   }
 }
 
@@ -404,7 +404,7 @@ export class Wolfman extends Boss {
   /** Silver only lands in the recovery window; pebbles just annoy him. */
   hit(world: World, kind: Weakness | 'melee' | 'pebble', damage: number, fromX: number): boolean {
     if (kind === 'silver' && !this.vulnerable) {
-      world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, '#fcfcfc', 3, 40);
+      world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, 'white', 3, 40);
       audio.play('tick');
       return false;
     }
@@ -686,7 +686,7 @@ export class GillCreature extends Boss {
     b.vx = chase ? this.dir * 40 : 0;
     b.x = Math.max(this.arenaX + 2, Math.min(this.arenaX + this.arenaW - b.w - 2, b.x + b.vx * dt));
     b.y += (surface - b.y) * 4 * dt + Math.sin(w.time * 3) * 6 * dt;
-    if (rand() < 0.1) w.particles.emit({ x: b.x + rand() * b.w, y: surface + 10, vx: 0, vy: -20, life: 0.4, colour: '#a4e4fc', size: 1, gravity: 0, kind: 'drop' });
+    if (rand() < 0.1) w.particles.emit({ x: b.x + rand() * b.w, y: surface + 10, vx: 0, vy: -20, life: 0.4, colour: 'iceBlue', size: 1, gravity: 0, kind: 'drop' });
   }
   fly(dt: number): void {
     const b = this.body;

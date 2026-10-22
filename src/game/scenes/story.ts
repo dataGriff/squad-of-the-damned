@@ -71,7 +71,7 @@ export class StoryScene implements Scene {
   }
 
   draw(r: Renderer): void {
-    r.clear('#000000');
+    r.clear('screen');
     if (!this.panels.length) return;
     const p = this.current;
     // the picture, clipped to its frame
@@ -82,21 +82,21 @@ export class StoryScene implements Scene {
     p.art(r, this.t);
     r.ctx.restore();
     // frame: a light border inset from a dark one, like the dialog boxes
-    r.rect(BOX.x - 3, BOX.y - 3, BOX.w + 6, 2, '#bcbcbc');
-    r.rect(BOX.x - 3, BOX.y + BOX.h + 1, BOX.w + 6, 2, '#7c7c7c');
-    r.rect(BOX.x - 3, BOX.y - 1, 2, BOX.h + 2, '#bcbcbc');
-    r.rect(BOX.x + BOX.w + 1, BOX.y - 1, 2, BOX.h + 2, '#7c7c7c');
+    r.rect(BOX.x - 3, BOX.y - 3, BOX.w + 6, 2, 'lightGrey');
+    r.rect(BOX.x - 3, BOX.y + BOX.h + 1, BOX.w + 6, 2, 'shade');
+    r.rect(BOX.x - 3, BOX.y - 1, 2, BOX.h + 2, 'lightGrey');
+    r.rect(BOX.x + BOX.w + 1, BOX.y - 1, 2, BOX.h + 2, 'shade');
     // typewriter text
-    r.box(BOX.x - 3, 140, BOX.w + 6, 78, '#000000');
+    r.box(BOX.x - 3, 140, BOX.w + 6, 78, 'panel');
     const lines = wrap(p.text, TEXT_COLS);
     let left = Math.floor(this.shown);
     lines.forEach((line, i) => {
       const visible = line.slice(0, Math.max(0, left));
       left -= line.length + 1;
-      r.text(visible, BOX.x + 6, 150 + i * 13, '#fcfcfc');
+      r.text(visible, BOX.x + 6, 150 + i * 13, 'text');
     });
-    if (this.shown >= p.text.length && Math.floor(this.t * 3) % 2 === 0) r.text('▼', BOX.x + BOX.w - 12, 206, '#f8d878');
-    r.text('START: SKIP', SCREEN_W - 92, 228, '#3c3c3c');
-    r.text(`${this.index + 1}/${this.panels.length}`, BOX.x - 3, 228, '#3c3c3c');
+    if (this.shown >= p.text.length && Math.floor(this.t * 3) % 2 === 0) r.text('▼', BOX.x + BOX.w - 12, 206, 'accent');
+    r.text('START: SKIP', SCREEN_W - 92, 228, 'textFaint');
+    r.text(`${this.index + 1}/${this.panels.length}`, BOX.x - 3, 228, 'textFaint');
   }
 }

@@ -7,6 +7,7 @@ import { audio } from '../../engine/audio';
 import type { SpritePalette } from '../palette';
 import type { Damageable, World } from '../world';
 import type { Weakness } from '../manual';
+import { solid, type Colour } from '../design/tokens';
 
 export interface EnemyOpts {
   w: number;
@@ -16,7 +17,8 @@ export interface EnemyOpts {
   aggroRange: number;
   flying?: boolean;
   contactDamage?: number;
-  colour: string;
+  /** Death particle colour. */
+  colour: Colour;
   anims: Record<string, AnimDef>;
   pal: SpritePalette;
   /** Sprite size (may be larger than hitbox). */
@@ -134,8 +136,8 @@ export class Enemy implements Damageable {
     const y = b.py + (b.y - b.py) * alpha - cy + b.h - s.h;
     const pal = this.flashTime > 0 ? WHITE : this.opts.pal;
     r.sprite(s, pal, x, y, this.dir > 0);
-    if (this.stunTime > 0) r.text('*', x + s.w / 2 - 4, y - 8, '#b8f8d8');
+    if (this.stunTime > 0) r.text('*', x + s.w / 2 - 4, y - 8, 'good');
   }
 }
 
-export const WHITE: SpritePalette = [null, '#fcfcfc', '#fcfcfc', '#fcfcfc'];
+export const WHITE: SpritePalette = solid('white');

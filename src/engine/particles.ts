@@ -6,6 +6,7 @@
 import { defineSprite, type Sprite } from './sprites';
 import type { Renderer } from './render';
 import { rand } from './random';
+import { hex, solid, type Colour } from '../game/design/tokens';
 
 export type ParticleKind = 'square' | 'puff' | 'spark' | 'chip' | 'drop';
 
@@ -16,7 +17,8 @@ export interface Particle {
   vy: number;
   life: number;
   maxLife: number;
-  colour: string;
+  /** A token, palette name or master hex; stored resolved to hex. */
+  colour: Colour;
   size: number;
   gravity: number;
   kind?: ParticleKind;
@@ -50,17 +52,17 @@ export class Particles {
 
   emit(p: Omit<Particle, 'maxLife'>): void {
     if (this.list.length >= this.max) this.list.shift();
-    this.list.push({ ...p, maxLife: p.life });
+    this.list.push({ ...p, colour: hex(p.colour), maxLife: p.life });
   }
 
-  dust(x: number, y: number, dir = 0, colour = '#bcbcbc'): void {
+  dust(x: number, y: number, dir = 0, colour: Colour = 'lightGrey'): void {
     const n = this.reduced ? 2 : 4;
     for (let i = 0; i < n; i++) {
       this.emit({ x: x + (rand() - 0.5) * 8, y: y - 2, vx: (rand() - 0.5) * 40 - dir * 20, vy: -rand() * 25, life: 0.3 + rand() * 0.15, colour, size: 1, gravity: 40, kind: 'puff' });
     }
   }
 
-  burst(x: number, y: number, colour: string, n = 10, speed = 90): void {
+  burst(x: number, y: number, colour: Colour, n = 10, speed = 90): void {
     if (this.reduced) n = Math.ceil(n / 2);
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + rand() * 0.5;
@@ -69,7 +71,7 @@ export class Particles {
     }
   }
 
-  sparkle(x: number, y: number, colour = '#f8d878'): void {
+  sparkle(x: number, y: number, colour: Colour = 'yellow'): void {
     this.emit({ x, y, vx: (rand() - 0.5) * 20, vy: -20 - rand() * 20, life: 0.5, colour, size: 1, gravity: -20, kind: 'spark' });
   }
 
@@ -100,7 +102,7 @@ export class Particles {
     for (const p of this.list) {
       const f = this.frameOf(p);
       if (f) {
-        r.sprite(f, [null, p.colour, p.colour, p.colour], p.x - camX - Math.floor(f.w / 2), p.y - camY - Math.floor(f.h / 2));
+        r.sprite(f, solid(p.colour), p.x - camX - Math.floor(f.w / 2), p.y - camY - Math.floor(f.h / 2));
         continue;
       }
       const s = p.life < p.maxLife * 0.3 ? 1 : p.size;

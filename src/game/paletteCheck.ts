@@ -26,7 +26,7 @@ export function checkSprites(sprites: Sprite[]): PaletteViolation[] {
 }
 
 export function checkPalette(p: SpritePalette, name = 'palette'): PaletteViolation[] {
-  const master = new Set(Object.values(MASTER_PALETTE));
+  const master = new Set<string>(Object.values(MASTER_PALETTE));
   const out: PaletteViolation[] = [];
   if (p[0] !== null) out.push({ sprite: name, reason: 'index 0 must be transparent' });
   for (let i = 1; i < 4; i++) if (!master.has(p[i] as string)) out.push({ sprite: name, reason: `colour ${p[i]} not in master palette` });

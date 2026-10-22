@@ -3,7 +3,7 @@
  * auto-tiled structural tiles from autotiles.ts. Each tile is 4 colours.
  */
 import { defineSprite, type Sprite } from '../../engine/sprites';
-import { cycled, cycleList, pal, type SpritePalette } from '../palette';
+import { cycled, cycleList, pal, type PaletteName, type SpritePalette } from '../palette';
 
 const WATER_CYCLE = cycleList(['skyBlue', 'iceBlue', 'white', 'iceBlue']);
 const SLIME_CYCLE = cycleList(['lime', 'yellow', 'lime', 'olive']);
@@ -14,22 +14,22 @@ const S = defineSprite;
 export type Theme = 'suburb' | 'graveyard' | 'mansion' | 'sewer' | 'drain' | 'hub';
 
 export interface ThemeDef {
-  sky: string;
+  sky: PaletteName;
   /** tile palette: 1 dark, 2 mid, 3 light */
   tiles: SpritePalette;
   deco: SpritePalette;
   groundTop: 'grass' | 'stone' | 'plank' | 'brick';
   /** optional backdrop colour bands (y fraction, colour) */
-  bands: [number, string][];
+  bands: [number, PaletteName][];
 }
 
 export const THEMES: Record<Theme, ThemeDef> = {
-  suburb: { sky: '#0000a8', tiles: pal('black', 'brown', 'lime'), deco: pal('black', 'olive', 'moon'), groundTop: 'grass', bands: [[0.55, '#3c3c3c'], [0.7, '#2c1600']] },
-  graveyard: { sky: '#000000', tiles: pal('darkGrey', 'grey', 'lightGrey'), deco: pal('black', 'purple', 'lightGrey'), groundTop: 'stone', bands: [[0.6, '#3c3c3c']] },
-  mansion: { sky: '#2c1600', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'red', 'yellow'), groundTop: 'plank', bands: [[0.0, '#503000'], [0.75, '#2c1600']] },
-  sewer: { sky: '#004058', tiles: pal('darkGrey', 'teal', 'mint'), deco: pal('black', 'olive', 'lime'), groundTop: 'brick', bands: [[0.5, '#3c3c3c']] },
-  drain: { sky: '#000000', tiles: pal('drainBlue', 'teal', 'cyan'), deco: pal('black', 'drainBlue', 'skyBlue'), groundTop: 'stone', bands: [[0.4, '#004058']] },
-  hub: { sky: '#0000a8', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'olive', 'moon'), groundTop: 'plank', bands: [[0.6, '#007800']] },
+  suburb: { sky: 'navy', tiles: pal('black', 'brown', 'lime'), deco: pal('black', 'olive', 'moon'), groundTop: 'grass', bands: [[0.55, 'darkGrey'], [0.7, 'darkBrown']] },
+  graveyard: { sky: 'black', tiles: pal('darkGrey', 'grey', 'lightGrey'), deco: pal('black', 'purple', 'lightGrey'), groundTop: 'stone', bands: [[0.6, 'darkGrey']] },
+  mansion: { sky: 'darkBrown', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'red', 'yellow'), groundTop: 'plank', bands: [[0.0, 'brown'], [0.75, 'darkBrown']] },
+  sewer: { sky: 'drainBlue', tiles: pal('darkGrey', 'teal', 'mint'), deco: pal('black', 'olive', 'lime'), groundTop: 'brick', bands: [[0.5, 'darkGrey']] },
+  drain: { sky: 'black', tiles: pal('drainBlue', 'teal', 'cyan'), deco: pal('black', 'drainBlue', 'skyBlue'), groundTop: 'stone', bands: [[0.4, 'drainBlue']] },
+  hub: { sky: 'navy', tiles: pal('black', 'brown', 'tan'), deco: pal('black', 'olive', 'moon'), groundTop: 'plank', bands: [[0.6, 'olive']] },
 };
 
 // deco per theme: gravestone/fence/bookshelf/pipe/barrel, bush/candle/window, sign/cobweb

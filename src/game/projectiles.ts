@@ -32,7 +32,7 @@ export class Shot implements Entity {
     stepBody(this.body, world.map, dt);
     if (this.body.hitWall || this.body.onGround || this.body.hitCeiling || this.life <= 0) {
       this.dead = true;
-      world.particles.burst(this.body.x + 2, this.body.y + 2, '#bcbcbc', 3, 40);
+      world.particles.burst(this.body.x + 2, this.body.y + 2, 'lightGrey', 3, 40);
       return;
     }
     for (const t of world.hittables(this.body.x, this.body.y, this.body.w, this.body.h)) {
@@ -40,7 +40,7 @@ export class Shot implements Entity {
       const dmg = this.shot === 'charged' ? 2 : 1;
       if (t.hit(world, dmgKind, dmg, this.body.x)) {
         this.dead = true;
-        world.particles.burst(this.body.x + 2, this.body.y + 2, this.shot === 'pebble' ? '#bcbcbc' : '#fcfcfc', 4, 60);
+        world.particles.burst(this.body.x + 2, this.body.y + 2, this.shot === 'pebble' ? 'lightGrey' : 'white', 4, 60);
         return;
       }
     }
@@ -124,7 +124,7 @@ export class StunCloud implements Entity {
         t.hit(world, 'garlic', 1, this.x + this.w / 2);
         t.stun?.(2.5);
       }
-      for (let i = 0; i < 8; i++) world.particles.sparkle(this.x + rand() * this.w, this.y + rand() * this.h, '#b8f8d8');
+      for (let i = 0; i < 8; i++) world.particles.sparkle(this.x + rand() * this.w, this.y + rand() * this.h, 'mint');
     }
     if (this.life <= 0) this.dead = true;
   }
@@ -160,7 +160,7 @@ export class Boulder implements Entity {
     stepBody(this.body, world.map, dt);
     if (this.body.onGround || this.body.hitWall || this.life <= 0) {
       this.dead = true;
-      world.particles.burst(this.body.x + 5, this.body.y + 5, '#7c7c7c', 6, 70);
+      world.particles.burst(this.body.x + 5, this.body.y + 5, 'grey', 6, 70);
       world.camera.shake(2, 0.1);
       return;
     }
@@ -203,7 +203,7 @@ export class Bubble implements Entity {
       if (overlaps(this, s)) {
         this.dead = true;
         s.dead = true;
-        world.particles.burst(this.x, this.y, '#a4e4fc', 4, 40);
+        world.particles.burst(this.x, this.y, 'iceBlue', 4, 40);
       }
     }
   }

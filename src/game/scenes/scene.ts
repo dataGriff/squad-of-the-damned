@@ -3,6 +3,7 @@ import type { Renderer } from '../../engine/render';
 import type { InputState, KeyboardSource, TouchSource, Bindings } from '../../engine/input';
 import type { SaveStore } from '../../engine/save';
 import { audio } from '../../engine/audio';
+import type { Colour } from '../design/tokens';
 
 export interface Scene {
   /** Transparent scenes let the scene beneath draw first (pause menus). */
@@ -87,7 +88,7 @@ export class Menu {
       this.onPick(this.index);
     } else if (input.pressed('pause') && this.onBack) this.onBack();
   }
-  draw(r: Renderer, y: number, colour = '#fcfcfc', dim = '#7c7c7c', centered = true, x = 32): void {
+  draw(r: Renderer, y: number, colour: Colour = 'text', dim: Colour = 'textDim', centered = true, x = 32): void {
     this.items.forEach((item, i) => {
       const sel = i === this.index;
       const text = (sel ? '► ' : '  ') + item;

@@ -76,13 +76,13 @@ export abstract class Boss implements Damageable {
       this.flashTime = 0.12;
       this.hitReact = 0.2;
       world.camera.shake(2, 0.12);
-      world.particles.burst(this.centerX, this.centerY, '#fcfcfc', 6, 70);
+      world.particles.burst(this.centerX, this.centerY, 'white', 6, 70);
       const phaseChanged = this.machine.damage(dmg);
       if (phaseChanged) this.onPhaseChange(world);
       if (this.machine.dead) this.defeat(world);
       return true;
     }
-    world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, '#bcbcbc', 3, 40);
+    world.particles.burst(fromX < this.centerX ? this.body.x : this.body.x + this.body.w, this.centerY, 'lightGrey', 3, 40);
     audio.play('tick');
     return false;
   }
@@ -126,7 +126,7 @@ export abstract class Boss implements Damageable {
       this.defeatTime += dt;
       this.anim.update(dt);
       if (this.defeatSprite(this.defeatTime) === undefined && rand() < 0.4)
-        world.particles.burst(this.body.x + rand() * this.body.w, this.body.y + rand() * this.body.h, '#fcfcfc', 2, 50);
+        world.particles.burst(this.body.x + rand() * this.body.w, this.body.y + rand() * this.body.h, 'white', 2, 50);
       if (this.defeatTime > this.defeatLength) {
         this.dead = true;
         world.events.onBossDefeated(this.id);
@@ -176,26 +176,26 @@ export abstract class Boss implements Damageable {
     // default ending: flicker out, skipping more frames as it goes (no alpha on a NES)
     const fading = scene === undefined && this.defeatTime > 1.5 ? (this.defeatTime - 1.5) * 2 : 0;
     if (!fading || Math.floor(this.defeatTime * 60) % 4 >= Math.ceil(fading * 4)) r.sprite(s, pal, x, y, this.dir > 0);
-    if (this.machine.stunTime > 0) r.text('* * *', x + this.sw / 2 - 20, y - 10, '#b8f8d8');
-    else if (this.machine.telegraphing) r.text('!', x + this.sw / 2 - 4, y - 10, '#f8d878');
+    if (this.machine.stunTime > 0) r.text('* * *', x + this.sw / 2 - 20, y - 10, 'good');
+    else if (this.machine.telegraphing) r.text('!', x + this.sw / 2 - 4, y - 10, 'accent');
   }
 
   /** Boss HP bar under the HUD: a skull, a framed bar, gold while vulnerable (#58). */
   drawHud(r: Renderer): void {
     if (this.introTime > 0) {
-      r.box(40, 92, SCREEN_W - 80, 24, '#000000');
-      r.headingCentered(this.name, 100, '#e40058');
+      r.box(40, 92, SCREEN_W - 80, 24, 'panel');
+      r.headingCentered(this.name, 100, 'danger');
       return;
     }
     const w = 100;
     const x = (SCREEN_W - w) / 2;
     r.sprite(SKULL, SKULL_PAL, x - 11, 19);
-    r.rect(x - 1, 19, w + 2, 7, '#000000');
-    r.rect(x - 1, 19, w + 2, 1, '#7c7c7c');
-    r.rect(x - 1, 25, w + 2, 1, '#3c3c3c');
-    r.rect(x + Math.round(w * this.machine.hpFraction), 21, w - Math.round(w * this.machine.hpFraction), 3, '#3c3c3c');
-    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 3, this.vulnerable ? '#f8d878' : '#e40058');
-    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 1, this.vulnerable ? '#fcfcfc' : '#f878f8');
+    r.rect(x - 1, 19, w + 2, 7, 'panel');
+    r.rect(x - 1, 19, w + 2, 1, 'shade');
+    r.rect(x - 1, 25, w + 2, 1, 'edge');
+    r.rect(x + Math.round(w * this.machine.hpFraction), 21, w - Math.round(w * this.machine.hpFraction), 3, 'edge');
+    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 3, this.vulnerable ? 'accent' : 'danger');
+    r.rect(x, 21, Math.round(w * this.machine.hpFraction), 1, this.vulnerable ? 'white' : 'pink');
   }
 
 }

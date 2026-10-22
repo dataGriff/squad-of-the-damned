@@ -5,6 +5,7 @@ import type { Sprite } from './sprites';
 import { Atlas } from './sprites';
 import { Fader } from './fade';
 import type { SpritePalette } from '../game/palette';
+import { hex, type Colour } from '../game/design/tokens';
 
 /**
  * Renderer: draws into a 256×240 2D buffer, then presents it to the display
@@ -176,13 +177,13 @@ export class Renderer {
 
   /* --- drawing helpers into the logical buffer --- */
 
-  clear(colour: string): void {
-    this.ctx.fillStyle = colour;
+  clear(colour: Colour): void {
+    this.ctx.fillStyle = hex(colour);
     this.ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
   }
 
-  rect(x: number, y: number, w: number, h: number, colour: string): void {
-    this.ctx.fillStyle = colour;
+  rect(x: number, y: number, w: number, h: number, colour: Colour): void {
+    this.ctx.fillStyle = hex(colour);
     this.ctx.fillRect(Math.round(x), Math.round(y), w, h);
   }
 
@@ -197,11 +198,12 @@ export class Renderer {
   }
 
   /** Draw text with the bitmap font. Colour is any CSS colour. */
-  text(str: string, x: number, y: number, colour = '#fcfcfc'): void {
+  text(str: string, x: number, y: number, colour: Colour = 'text'): void {
+    const c = hex(colour);
     let cx = Math.round(x);
     const cy = Math.round(y);
     for (const ch of str) {
-      if (ch !== ' ') this.ctx.drawImage(this.glyphCanvas(ch, colour), cx, cy);
+      if (ch !== ' ') this.ctx.drawImage(this.glyphCanvas(ch, c), cx, cy);
       cx += FONT_W;
     }
   }
@@ -211,14 +213,14 @@ export class Renderer {
    * 50% checkerboard fill: the NES way to fake transparency (screen flashes,
    * shadows, fog) without alpha blending.
    */
-  dither(x: number, y: number, w: number, h: number, colour: string, phase = 0): void {
-    const key = colour + phase;
+  dither(x: number, y: number, w: number, h: number, colour: Colour, phase = 0): void {
+    const key = hex(colour) + phase;
     let pat = this.ditherPatterns.get(key);
     if (!pat) {
       const c = document.createElement('canvas');
       c.width = c.height = 2;
       const g = c.getContext('2d')!;
-      g.fillStyle = colour;
+      g.fillStyle = hex(colour);
       g.fillRect(phase, 0, 1, 1);
       g.fillRect(1 - phase, 1, 1, 1);
       pat = this.ctx.createPattern(c, 'repeat')!;
@@ -232,10 +234,10 @@ export class Renderer {
    * NES-style dialog box: solid fill, a light border inset by one pixel and
    * notched corners.
    */
-  box(x: number, y: number, w: number, h: number, fill = '#000000', border = '#fcfcfc', shade = '#7c7c7c'): void {
+  box(x: number, y: number, w: number, h: number, fill: Colour = 'panel', border: Colour = 'border', shade: Colour = 'shade'): void {
     x = Math.round(x);
     y = Math.round(y);
-    this.rect(x, y, w, h, '#000000');
+    this.rect(x, y, w, h, 'panel');
     this.rect(x + 1, y + 1, w - 2, h - 2, fill);
     this.rect(x + 2, y + 1, w - 4, 1, border);
     this.rect(x + 2, y + h - 2, w - 4, 1, shade);
@@ -250,7 +252,9 @@ export class Renderer {
    * Chunky 2× title text: each font pixel becomes 2×2, the top rows in `top`,
    * the lower rows in `bottom`, with a 1px black outline. Cached per string.
    */
-  bigText(str: string, x: number, y: number, top: string, bottom: string, scale = 2): void {
+  bigText(str: string, x: number, y: number, topColour: Colour, bottomColour: Colour, scale = 2): void {
+    const top = hex(topColour);
+    const bottom = hex(bottomColour);
     const key = `${str}|${top}|${bottom}|${scale}`;
     let c = this.bigCache.get(key);
     if (!c) {
@@ -265,7 +269,7 @@ export class Renderer {
         for (let gy = 0; gy < rows.length; gy++)
           for (let gx = 0; gx < rows[gy].length; gx++) if (rows[gy][gx] === '#') cells.push([1 + (i * FONT_W + gx) * scale, 1 + gy * scale, gy]);
       });
-      g.fillStyle = '#000000';
+      g.fillStyle = hex('black');
       for (const [cx, cy] of cells) g.fillRect(cx - 1, cy - 1, scale + 2, scale + 2);
       for (const [cx, cy, gy] of cells) {
         g.fillStyle = gy < 4 ? top : bottom;
@@ -281,7 +285,7 @@ export class Renderer {
   }
 
   /** Text with a 1px black drop shadow, readable over busy tiles. */
-  textShadow(str: string, x: number, y: number, colour = '#fcfcfc', shadow = '#000000'): void {
+  textShadow(str: string, x: number, y: number, colour: Colour = 'text', shadow: Colour = 'black'): void {
     this.text(str, x + 1, y + 1, shadow);
     this.text(str, x, y, colour);
   }
@@ -291,7 +295,9 @@ export class Renderer {
    * Heavy display text (#58): the bold 7×7 face with a 1px drop shadow.
    * Characters the display face lacks fall back to the thin font.
    */
-  heading(str: string, x: number, y: number, colour = '#fcfcfc', shadow = '#000000'): void {
+  heading(str: string, x: number, y: number, colourName: Colour = 'text', shadowName: Colour = 'black'): void {
+    const colour = hex(colourName);
+    const shadow = hex(shadowName);
     const key = `${str}|${colour}|${shadow}`;
     let c = this.headingCache.get(key);
     if (!c) {
@@ -311,11 +317,11 @@ export class Renderer {
     this.ctx.drawImage(c, Math.round(x), Math.round(y));
   }
 
-  headingCentered(str: string, y: number, colour = '#fcfcfc', cx = SCREEN_W / 2): void {
+  headingCentered(str: string, y: number, colour: Colour = 'text', cx = SCREEN_W / 2): void {
     this.heading(str, cx - (str.length * FONT_W) / 2, y, colour);
   }
 
-  textCentered(str: string, y: number, colour = '#fcfcfc', cx = SCREEN_W / 2): void {
+  textCentered(str: string, y: number, colour: Colour = 'text', cx = SCREEN_W / 2): void {
     this.text(str, cx - (str.length * FONT_W) / 2, y, colour);
   }
 
