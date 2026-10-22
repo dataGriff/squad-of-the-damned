@@ -45,9 +45,23 @@ Everything is drawn into a 256×240 buffer under NES rules: 16px tiles, every sp
 - **Parallax backdrops** (`src/game/art/backdrops.ts`): dithered skies, a moon and halo, and 3–6 depth layers per theme, generated with the `PixelArt` helper (`src/engine/pixelart.ts`: Bayer dithering, shapes, outlines, seamless wrapping).
 - **Effects without alpha**: checkerboard dither for flashes and lamplight, flicker for boss deaths, and an NES-style palette-step fade (`src/engine/fade.ts`) on scene changes and respawns.
 
-`npm run check:palette` covers all ~1,500 generated and hand-drawn sprites.
+`npm run check:palette` covers all ~1,665 generated and hand-drawn sprites.
 
 ![Before and after the art pass](docs/screenshots/art-pass-before-after.png)
+
+### Art pass 2
+
+- **Animated kids** (`src/game/art/kids.ts`): each kid is a rig (head plus posed limbs) with 8-frame idle and run cycles, jump/apex/fall/land, crawl, climb and hurt, plus per-kid moves (Casey aims, Pip flips, Bruno punches). Big and Little are drawn at their own scale.
+- **Boss animation** (`src/game/bosses/`): every attack has a wind-up frame, hits get a reaction pose, and each boss has its own defeat scene: the Count bursts into bats, the Giant sits down, the Wolfman turns back into a man.
+- **Palette cycling and lightning** (`src/game/palette.ts`, `src/game/backdrop.ts`): water, flames and lamps cycle colours. Storm nights flash to a strike palette and then thunder, with a reduced-flash option.
+- **Set dressing** (`src/game/art/props.ts`, `src/game/dressing.ts`): seeded props (mailboxes, headstones, suits of armour, barrels, traffic cones) behind the play area, and foreground silhouettes in front of it.
+- **Landmarks** (`src/game/art/landmarks.ts`): a hand-drawn skyline piece per night, such as the Grey house, the church, the water tower, the museum and the mansion staircase.
+- **Story screens** (`src/game/story.ts`): typewriter panels before and after each night, and STORY SO FAR in the hub.
+- **Polish**: sprite particles instead of single pixels, a bold display font for headings, and a framed HUD with icons.
+
+![Art pass 2](docs/screenshots/art-pass-2.png)
+
+![The squad](docs/screenshots/kids.png)
 
 ## Knowledge as progression
 
