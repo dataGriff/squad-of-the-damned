@@ -53,7 +53,7 @@ function bat(frame: number): Sprite {
 }
 export const BAT: AnimDef = anim([bat(0), bat(1), bat(2), bat(1)], 12);
 
-export const RAT_PAL = pal('black', 'grey', 'pink');
+export const RAT_PAL = pal('black', 'lightGrey', 'red');
 function rat(frame: number): Sprite {
   const p = new PixelArt(18, 9);
   p.ellipse(9, 5, 6, 3, 2);
