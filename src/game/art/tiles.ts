@@ -7,6 +7,8 @@ import { cycled, cycleList, pal, type PaletteName, type SpritePalette } from '..
 
 const WATER_CYCLE = cycleList(['skyBlue', 'iceBlue', 'white', 'iceBlue']);
 const SLIME_CYCLE = cycleList(['yellow', 'mint', 'yellow', 'white']);
+/** The storm drain's periwinkle water shimmers without sky blue, which it cannot be told apart from (#68). */
+const DRAIN_CYCLE = cycleList(['iceBlue', 'white', 'iceBlue', 'mist']);
 import { AIR_U, autoTile } from './autotiles';
 
 const S = defineSprite;
@@ -95,7 +97,7 @@ export function tileSprite(gid: number, theme: Theme, frame = 0, mask = AIR_U, v
     case 8: {
       // palette-cycled highlights make the surface shimmer (#54)
       const w = autoTile('water', theme, t.tiles, mask, variant, frame);
-      return { sprite: w.sprite, pal: cycled(w.pal, 3, theme === 'sewer' ? SLIME_CYCLE : WATER_CYCLE, frame, 1) };
+      return { sprite: w.sprite, pal: cycled(w.pal, 3, theme === 'sewer' ? SLIME_CYCLE : theme === 'drain' ? DRAIN_CYCLE : WATER_CYCLE, frame, 1) };
     }
     case 9:
       return { sprite: DECO[theme][0], pal: t.deco };

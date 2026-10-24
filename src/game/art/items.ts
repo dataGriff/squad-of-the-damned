@@ -67,7 +67,7 @@ export const SILVER: AnimDef = anim(
   4,
 );
 
-export const HEART_PAL = pal('darkBrown', 'red', 'pink');
+export const HEART_PAL = pal('black', 'brightRed', 'pink');
 export const HEART: Sprite = S('heart', ['.11...11.', '1231.1221', '12221222 1'.replace(' ', ''), '122222221', '.1222221.', '..12221..', '...121...', '....1....']);
 
 export const PROJ_PAL = pal('darkGrey', 'lightGrey', 'white');
@@ -98,7 +98,7 @@ export const FIRE: AnimDef = anim(
   10,
 );
 
-export const VALVE_PAL = pal('darkGrey', 'red', 'lightGrey');
+export const VALVE_PAL = pal('black', 'brightRed', 'lightGrey');
 export const VALVE: Sprite = S('valve', ['....1111....', '...122221...', '..12213221..', '..12111221..', '.1221111221.', '.1221111221.', '..12111221..', '..12213221..', '...122221...', '....1111....', '.....33.....', '.....33.....']);
 export const WATER_PAL = pal('navy', 'skyBlue', 'iceBlue');
 export const SPRAY: AnimDef = anim(

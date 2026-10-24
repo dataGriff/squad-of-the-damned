@@ -98,7 +98,7 @@ function hand(stage: number): Sprite {
 }
 export const HAND: AnimDef = anim([hand(0), hand(1), hand(2)], 6);
 
-export const FROG_PAL = pal('black', 'olive', 'lime');
+export const FROG_PAL = pal('black', 'green', 'lime');
 function frog(frame: number): Sprite {
   const p = new PixelArt(16, 11);
   const y0 = frame === 0 ? 1 : 3;

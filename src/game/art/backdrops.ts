@@ -672,14 +672,15 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
     { frames: [LM.CHANDELIER], pal: pal('darkBrown', 'rust', 'yellow'), y: 16, factor: 0.5, every: 384, offset: 200, cycle: { index: 3, colours: cycleList(['yellow', 'white', 'yellow', 'amber']), fps: 6 } },
   ],
   sewer: [
-    { frames: [sewerWall('bd_sw_wall', 14)], pal: pal('black', 'drainBlue', 'navy'), y: 16, factor: 0.3 },
+    // navy brick with drain-blue mortar: drain-blue brick hid dark sprites (#68)
+    { frames: [sewerWall('bd_sw_wall', 14)], pal: pal('black', 'navy', 'drainBlue'), y: 16, factor: 0.3 },
     { frames: [LM.MUSEUM], pal: pal('black', 'amber', 'tan'), y: 72, factor: 0.3, every: 1024, offset: 600 },
     { frames: [LM.BROKEN_RIM], pal: pal('black', 'drainBlue', 'teal'), y: 72, factor: 0.3, every: 1024, offset: 600 },
     { frames: [pipes('bd_sw_pipes')], pal: pal('black', 'darkGrey', 'grey'), y: 24, factor: 0.55 },
     { frames: [0, 1, 2].map((f) => slime('bd_sw_slime', f)), pal: pal('black', 'bogGreen', 'olive'), y: 196, factor: 0.3, fps: 3 },
   ],
   drain: [
-    { frames: [culvert('bd_dr_culvert')], pal: pal('black', 'drainBlue', 'teal'), y: 16, factor: 0.12, strikePal: pal('black', 'grey', 'white') },
+    { frames: [culvert('bd_dr_culvert')], pal: pal('black', 'navy', 'teal'), y: 16, factor: 0.12, strikePal: pal('black', 'grey', 'white') },
     { frames: [LM.OUTFLOW], pal: pal('black', 'darkGrey', 'grey'), y: 64, factor: 0.12, every: 1024, offset: 64, strikePal: pal('black', 'grey', 'white') },
     { frames: LM.POUR, pal: pal('navy', 'skyBlue', 'white'), y: 170, factor: 0.12, every: 1024, offset: 92, fps: 10 },
     { frames: [lightShafts('bd_dr_shafts')], pal: pal('black', 'teal', 'iceBlue'), y: 16, factor: 0.35, strikePal: pal('black', 'white', 'white'), cycle: { index: 3, colours: cycleList(['iceBlue', 'white', 'iceBlue', 'cyan']), fps: 3 } },

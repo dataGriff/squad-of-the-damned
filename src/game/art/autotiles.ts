@@ -331,7 +331,7 @@ const WATER_PAL: Record<Theme, SpritePalette> = {
   graveyard: pal('navy', 'indigo', 'periwinkle'),
   mansion: pal('navy', 'blue', 'skyBlue'),
   sewer: pal('bogGreen', 'lime', 'yellow'),
-  drain: pal('navy', 'blue', 'iceBlue'),
+  drain: pal('navy', 'periwinkle', 'iceBlue'),
   hub: pal('navy', 'blue', 'skyBlue'),
 };
 
