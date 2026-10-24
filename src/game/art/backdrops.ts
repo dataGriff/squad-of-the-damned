@@ -645,8 +645,9 @@ export const BACKDROPS: Record<Theme, BackLayer[]> = {
     { frames: [hedges('bd_sub_hedge', 5)], pal: pal('black', 'darkGreen', 'grey'), y: 178, factor: 0.7 },
   ],
   graveyard: [
-    skyBand('bd_gy_sky0', 'black', 'indigo', 16, 120),
-    skyBand('bd_gy_sky1', 'indigo', 'plum', 120, 208),
+    // navy night with a plum glow only at the horizon: indigo across the sky hid dark sprites (#67)
+    skyBand('bd_gy_sky0', 'black', 'navy', 16, 120),
+    skyBand('bd_gy_sky1', 'navy', 'plum', 120, 208),
     { frames: STARS, pal: pal('darkGrey', 'lavender', 'white'), y: 16, factor: 0.02, fps: 1.2 },
     { frames: [BIG_HALO], pal: pal('indigo', 'purple', 'purple'), y: 4, factor: 0, x: 140 },
     { frames: [BIG_MOON], pal: pal('moon', 'sand', 'yellow'), y: 30, factor: 0, x: 166 },

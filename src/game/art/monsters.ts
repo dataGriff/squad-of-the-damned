@@ -74,7 +74,7 @@ function rat(frame: number): Sprite {
 }
 export const RAT: AnimDef = anim([rat(0), rat(1)], 10);
 
-export const HAND_PAL = pal('black', 'olive', 'lime');
+export const HAND_PAL = pal('black', 'green', 'lime');
 function hand(stage: number): Sprite {
   const p = new PixelArt(12, 14);
   // mound of earth
