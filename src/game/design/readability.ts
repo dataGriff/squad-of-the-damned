@@ -227,10 +227,13 @@ function significantIndices(e: ArtEntry): number[] {
 
 /** A sprite stands out from a background colour when one of its significant colours reaches this contrast. */
 export const STANDOUT = 3;
-/** It must stand out from backgrounds covering at least half the night's play area. */
-export const READABLE_SHARE = 0.5;
+/**
+ * It must stand out from backgrounds covering at least three quarters of the
+ * night's play area (raised from half once every sprite cleared it, #70).
+ */
+export const READABLE_SHARE = 0.75;
 /** Below this the check passes but reports the sprite, so weak spots stay visible. */
-export const WARN_SHARE = 0.75;
+export const WARN_SHARE = 0.9;
 
 export interface SpriteResult {
   entry: string;

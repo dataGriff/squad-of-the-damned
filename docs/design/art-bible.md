@@ -110,7 +110,7 @@ Every sprite goes in the **art registry** (`src/game/art/registry.ts`), together
 
 **The readability rules:**
 - **Text** must reach 4.5:1 against every surface it is used on. Bold display text and secondary text need 3:1. These are WCAG AA ratios.
-- **Gameplay sprites** must stand out from at least half of each night's background. "Stand out" means a colour covering at least an eighth of the sprite reaches 3:1 against a colour covering at least 4% of the play area. Under three quarters is printed as a warning.
+- **Gameplay sprites** must stand out from at least three quarters of each night's background. "Stand out" means a colour covering at least an eighth of the sprite reaches 3:1 against a colour covering at least 4% of the play area. Under 90% is printed as a warning.
 - **Backdrops** must never contain two dominant colours at 3:1, so scenery never competes with gameplay.
 
 ## 9. Changing how something looks
